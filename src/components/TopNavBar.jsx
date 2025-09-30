@@ -4,12 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
 import { User, LogOut } from 'lucide-react';
+// @ts-ignore;
+import { useNavigate } from 'react-router-dom';
 
 const TopNavBar = () => {
   const [currentUser, setCurrentUser] = useState(null);
   const {
     toast
   } = useToast();
+  const navigate = useNavigate();
   useEffect(() => {
     // 获取当前登录用户信息
     try {
@@ -32,7 +35,7 @@ const TopNavBar = () => {
 
     // 延迟跳转到登录页
     setTimeout(() => {
-      window.location.href = '/login';
+      navigate('/login');
     }, 1000);
   };
   if (!currentUser) return null;
