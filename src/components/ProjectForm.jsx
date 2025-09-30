@@ -95,7 +95,7 @@ export function ProjectForm({
             {formData.projectLocation.full_address && (
               <div className="px-4 py-3 bg-green-50 rounded-xl border border-green-200">
                 <p className="text-sm text-green-800 font-medium">
-                  📍 {formData.projectLocation.province} {formData.projectLocation.city} {formData.projectLocation.county}
+                  📍 {formData.projectLocation.province}-{formData.projectLocation.city}-{formData.projectLocation.county}
                 </p>
               </div>
             )}

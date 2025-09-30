@@ -1149,44 +1149,25 @@ const chinaRegions = {
       code: '110119',
       name: '延庆区'
     }],
-    // 河南省郑州市区县 - 重点扩展
-    '4101': [{
-      code: '410102',
-      name: '中原区'
-    }, {
-      code: '410103',
-      name: '二七区'
-    }, {
-      code: '410104',
-      name: '管城回族区'
-    }, {
-      code: '410105',
-      name: '金水区'
-    }, {
-      code: '410106',
-      name: '上街区'
-    }, {
-      code: '410108',
-      name: '惠济区'
-    }, {
-      code: '410122',
-      name: '中牟县'
-    }, {
-      code: '410181',
-      name: '巩义市'
-    }, {
-      code: '410182',
-      name: '荥阳市'
-    }, {
-      code: '410183',
-      name: '新密市'
-    }, {
-      code: '410184',
-      name: '新郑市'
-    }, {
-      code: '410185',
-      name: '登封市'
-    }]
+    // 河南省各地市区县
+    '4101': [{ code: '410102', name: '中原区' }, { code: '410103', name: '二七区' }, { code: '410104', name: '管城回族区' }, { code: '410105', name: '金水区' }, { code: '410106', name: '上街区' }, { code: '410108', name: '惠济区' }, { code: '410122', name: '中牟县' }, { code: '410181', name: '巩义市' }, { code: '410182', name: '荥阳市' }, { code: '410183', name: '新密市' }, { code: '410184', name: '新郑市' }, { code: '410185', name: '登封市' }],
+    '4102': [{ code: '410202', name: '龙亭区' }, { code: '410203', name: '顺河回族区' }, { code: '410204', name: '鼓楼区' }, { code: '410205', name: '禹王台区' }, { code: '410212', name: '祥符区' }, { code: '410221', name: '杞县' }, { code: '410222', name: '通许县' }, { code: '410223', name: '尉氏县' }, { code: '410225', name: '兰考县' }],
+    '4103': [{ code: '410302', name: '老城区' }, { code: '410303', name: '西工区' }, { code: '410304', name: '瀍河回族区' }, { code: '410305', name: '涧西区' }, { code: '410306', name: '吉利区' }, { code: '410311', name: '洛龙区' }, { code: '410322', name: '孟津县' }, { code: '410323', name: '新安县' }, { code: '410324', name: '栾川县' }, { code: '410325', name: '嵩县' }, { code: '410326', name: '汝阳县' }, { code: '410327', name: '宜阳县' }, { code: '410328', name: '洛宁县' }, { code: '410329', name: '伊川县' }, { code: '410381', name: '偃师市' }],
+    '4104': [{ code: '410402', name: '新华区' }, { code: '410403', name: '卫东区' }, { code: '410404', name: '石龙区' }, { code: '410411', name: '湛河区' }, { code: '410421', name: '宝丰县' }, { code: '410422', name: '叶县' }, { code: '410423', name: '鲁山县' }, { code: '410425', name: '郏县' }, { code: '410481', name: '舞钢市' }, { code: '410482', name: '汝州市' }],
+    '4105': [{ code: '410502', name: '文峰区' }, { code: '410503', name: '北关区' }, { code: '410505', name: '殷都区' }, { code: '410506', name: '龙安区' }, { code: '410522', name: '安阳县' }, { code: '410523', name: '汤阴县' }, { code: '410526', name: '滑县' }, { code: '410527', name: '内黄县' }, { code: '410581', name: '林州市' }],
+    '4106': [{ code: '410602', name: '鹤山区' }, { code: '410603', name: '山城区' }, { code: '410611', name: '淇滨区' }, { code: '410621', name: '浚县' }, { code: '410622', name: '淇县' }],
+    '4107': [{ code: '410702', name: '红旗区' }, { code: '410703', name: '卫滨区' }, { code: '410704', name: '凤泉区' }, { code: '410711', name: '牧野区' }, { code: '410721', name: '新乡县' }, { code: '410724', name: '获嘉县' }, { code: '410725', name: '原阳县' }, { code: '410726', name: '延津县' }, { code: '410727', name: '封丘县' }, { code: '410728', name: '长垣县' }, { code: '410781', name: '卫辉市' }, { code: '410782', name: '辉县市' }],
+    '4108': [{ code: '410802', name: '解放区' }, { code: '410803', name: '中站区' }, { code: '410804', name: '马村区' }, { code: '410811', name: '山阳区' }, { code: '410821', name: '修武县' }, { code: '410822', name: '博爱县' }, { code: '410823', name: '武陟县' }, { code: '410825', name: '温县' }, { code: '410882', name: '沁阳市' }, { code: '410883', name: '孟州市' }],
+    '4109': [{ code: '410902', name: '华龙区' }, { code: '410922', name: '清丰县' }, { code: '410923', name: '南乐县' }, { code: '410926', name: '范县' }, { code: '410927', name: '台前县' }, { code: '410928', name: '濮阳县' }],
+    '4110': [{ code: '411002', name: '魏都区' }, { code: '411023', name: '许昌县' }, { code: '411024', name: '鄢陵县' }, { code: '411025', name: '襄城县' }, { code: '411081', name: '禹州市' }, { code: '411082', name: '长葛市' }],
+    '4111': [{ code: '411102', name: '源汇区' }, { code: '411103', name: '郾城区' }, { code: '411104', name: '召陵区' }, { code: '411121', name: '舞阳县' }, { code: '411122', name: '临颍县' }],
+    '4112': [{ code: '411202', name: '湖滨区' }, { code: '411203', name: '陕州区' }, { code: '411221', name: '渑池县' }, { code: '411224', name: '卢氏县' }, { code: '411281', name: '义马市' }, { code: '411282', name: '灵宝市' }],
+    '4113': [{ code: '411302', name: '宛城区' }, { code: '411303', name: '卧龙区' }, { code: '411321', name: '南召县' }, { code: '411322', name: '方城县' }, { code: '411323', name: '西峡县' }, { code: '411324', name: '镇平县' }, { code: '411325', name: '内乡县' }, { code: '411326', name: '淅川县' }, { code: '411327', name: '社旗县' }, { code: '411328', name: '唐河县' }, { code: '411329', name: '新野县' }, { code: '411330', name: '桐柏县' }, { code: '411381', name: '邓州市' }],
+    '4114': [{ code: '411402', name: '梁园区' }, { code: '411403', name: '睢阳区' }, { code: '411421', name: '民权县' }, { code: '411422', name: '睢县' }, { code: '411423', name: '宁陵县' }, { code: '411424', name: '柘城县' }, { code: '411425', name: '虞城县' }, { code: '411426', name: '夏邑县' }, { code: '411481', name: '永城市' }],
+    '4115': [{ code: '411502', name: '浉河区' }, { code: '411503', name: '平桥区' }, { code: '411521', name: '罗山县' }, { code: '411522', name: '光山县' }, { code: '411523', name: '新县' }, { code: '411524', name: '商城县' }, { code: '411525', name: '固始县' }, { code: '411526', name: '潢川县' }, { code: '411527', name: '淮滨县' }, { code: '411528', name: '息县' }],
+    '4116': [{ code: '411602', name: '川汇区' }, { code: '411621', name: '扶沟县' }, { code: '411622', name: '西华县' }, { code: '411623', name: '商水县' }, { code: '411624', name: '沈丘县' }, { code: '411625', name: '郸城县' }, { code: '411626', name: '淮阳县' }, { code: '411627', name: '太康县' }, { code: '411628', name: '鹿邑县' }, { code: '411681', name: '项城市' }],
+    '4117': [{ code: '411702', name: '驿城区' }, { code: '411721', name: '西平县' }, { code: '411722', name: '上蔡县' }, { code: '411723', name: '平舆县' }, { code: '411724', name: '正阳县' }, { code: '411725', name: '确山县' }, { code: '411726', name: '泌阳县' }, { code: '411727', name: '汝南县' }, { code: '411728', name: '遂平县' }, { code: '411729', name: '新蔡县' }],
+    '4190': [{ code: '419001', name: '济源市' }]
   }
 };
 
@@ -1289,18 +1270,19 @@ export function ChinaLocationPicker({
   onOpenChange,
   onSelect
 }) {
-  const [selectedProvince, setSelectedProvince] = useState('');
+  // 河南省固定为41
+  const [selectedProvince, setSelectedProvince] = useState('41');
   const [selectedCity, setSelectedCity] = useState('');
   const [selectedCounty, setSelectedCounty] = useState('');
-  const provinces = chinaRegions.provinces;
-  const cities = selectedProvince ? chinaRegions.cities[selectedProvince] || [] : [];
+
+  // 只显示河南省数据
+  const provinces = [{ code: '41', name: '河南省' }];
+  const cities = chinaRegions.cities['41'] || [];
   const counties = selectedCity ? chinaRegions.counties[selectedCity] || [] : [];
 
-  // 省份变化时重置城市和县区
+  // 省份固定为河南省，不允许修改
   const handleProvinceChange = provinceCode => {
-    setSelectedProvince(provinceCode);
-    setSelectedCity('');
-    setSelectedCounty('');
+    // 不做任何操作，省份固定为河南省
   };
 
   // 城市变化时重置县区
@@ -1319,7 +1301,7 @@ export function ChinaLocationPicker({
     }
   };
   const resetSelection = () => {
-    setSelectedProvince('');
+    setSelectedProvince('41'); // 保持河南省选中
     setSelectedCity('');
     setSelectedCounty('');
   };
@@ -1383,11 +1365,11 @@ export function ChinaLocationPicker({
           {/* 三级联动选择器 */}
           <div className="p-6">
             <div className="grid grid-cols-3 gap-4">
-              {/* 省份选择 */}
-              <PickerColumn items={provinces} selectedValue={selectedProvince} onSelect={handleProvinceChange} label="省份" className="w-full" />
+              {/* 省份选择 - 固定为河南省 */}
+              <PickerColumn items={provinces} selectedValue={selectedProvince} onSelect={handleProvinceChange} label="省份" className="w-full opacity-60 pointer-events-none" />
 
               {/* 城市选择 */}
-              <PickerColumn items={cities} selectedValue={selectedCity} onSelect={handleCityChange} label="城市" className={`w-full ${!selectedProvince ? 'opacity-40 pointer-events-none' : ''}`} />
+              <PickerColumn items={cities} selectedValue={selectedCity} onSelect={handleCityChange} label="城市" className="w-full" />
 
               {/* 区县选择 */}
               <PickerColumn items={counties} selectedValue={selectedCounty} onSelect={setSelectedCounty} label="区县" className={`w-full ${!selectedCity ? 'opacity-40 pointer-events-none' : ''}`} />

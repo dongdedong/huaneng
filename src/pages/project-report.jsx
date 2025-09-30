@@ -159,7 +159,7 @@ export default function ProjectReport(props) {
         province,
         city,
         county,
-        full_address: `${province}${city}${county}`
+        full_address: `${province}-${city}-${county}`
       }
     }));
   };
@@ -271,6 +271,16 @@ export default function ProjectReport(props) {
       toast({
         title: "表单不完整",
         description: "请填写所有必填项",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 项目所在地验证 - 必须选择到县级
+    if (!formData.projectLocation.province || !formData.projectLocation.city || !formData.projectLocation.county) {
+      toast({
+        title: "项目所在地不完整",
+        description: "请选择完整的项目所在地（省-市-县）",
         variant: "destructive"
       });
       return;
