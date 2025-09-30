@@ -4,10 +4,9 @@ import React, { useState } from 'react';
 import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, useToast } from '@/components/ui';
 // @ts-ignore;
 import { User, Lock, LogIn } from 'lucide-react';
-// @ts-ignore;
-import { useNavigate } from 'react-router-dom';
 
-const LoginPage = () => {
+const LoginPage = (props) => {
+  const { $w } = props;
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -16,7 +15,6 @@ const LoginPage = () => {
   const {
     toast
   } = useToast();
-  const navigate = useNavigate();
 
   // 从数据库验证用户账号
   const validateUser = async (username, password) => {
@@ -119,7 +117,8 @@ const LoginPage = () => {
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          navigate('/project-report');
+          // 对于微搭平台，使用简单的location跳转
+          window.location.replace('/project-report');
         }, 1000);
       } else {
         toast({

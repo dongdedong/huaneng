@@ -291,7 +291,7 @@ export default function ProjectReport(props) {
   }
   return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
       {/* 顶部导航栏 */}
-      <TopNavBar />
+      <TopNavBar $w={$w} />
 
       {/* 顶部装饰 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
