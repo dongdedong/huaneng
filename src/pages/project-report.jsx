@@ -405,25 +405,6 @@ export default function ProjectReport(props) {
 
       <div className="relative z-10 pb-8 pt-4">
         <div className="max-w-lg mx-auto px-4">
-          {/* 页面头部 */}
-          <div className="pt-8 pb-6 text-center">
-            <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-              <div className="text-2xl">🏗️</div>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">新能源项目管理</h1>
-            <p className="text-gray-600">项目信息填报与管理系统</p>
-
-            {/* 开发工具链接 */}
-            <div className="mt-4">
-              <a href="#create-users-data" className="text-sm text-blue-600 underline" onClick={e => {
-              e.preventDefault();
-              window.location.hash = 'create-users-data';
-              window.location.reload();
-            }}>
-                🔧 创建用户数据源（开发工具）
-              </a>
-            </div>
-          </div>
 
           {/* 填报表单 */}
           <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} submitting={submitting} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />

@@ -289,13 +289,6 @@ export function ProjectForm({
                 '📤 提交信息'
               )}
             </Button>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-              className="h-14 px-6 rounded-2xl border-2 border-gray-300 text-gray-600 hover:bg-gray-50 transition-all duration-200"
-            >
-              🔄 测试编号生成
-            </Button>
           </div>
         </CardContent>
       </Card>
