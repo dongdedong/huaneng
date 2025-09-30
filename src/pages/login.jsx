@@ -5,8 +5,10 @@ import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, useToas
 // @ts-ignore;
 import { User, Lock, LogIn } from 'lucide-react';
 
-const LoginPage = (props) => {
-  const { $w } = props;
+const LoginPage = props => {
+  const {
+    $w
+  } = props;
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -117,8 +119,16 @@ const LoginPage = (props) => {
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          // 对于微搭平台，使用简单的location跳转
-          window.location.replace('/project-report');
+          // 使用微搭平台的路由跳转API，确保路由正确
+          if ($w && $w.utils && $w.utils.navigateTo) {
+            $w.utils.navigateTo({
+              pageId: 'project-report',
+              params: {}
+            });
+          } else {
+            // 备用方案：使用hash路由
+            window.location.hash = '#/project-report';
+          }
         }, 1000);
       } else {
         toast({
