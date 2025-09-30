@@ -408,74 +408,189 @@ export default function ProjectReport(props) {
     });
   };
   if (loading) {
-    return <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-      </div>;
-  }
-  return <div className="min-h-screen bg-gray-50 px-3 py-4">
-      <div className="max-w-md mx-auto">
-        <h1 className="text-xl font-bold text-center mb-4 text-gray-800">项目信息填报</h1>
-        
-        <Tabs defaultValue="form" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-4 bg-white rounded-lg p-1">
-            <TabsTrigger value="form" className="rounded-md py-2 text-sm data-[state=active]:bg-green-600 data-[state=active]:text-white">
-              {editingId ? '编辑' : '填报'}
-            </TabsTrigger>
-            <TabsTrigger value="all" className="rounded-md py-2 text-sm data-[state=active]:bg-green-600 data-[state=active]:text-white">
-              全部
-            </TabsTrigger>
-            <TabsTrigger value="mine" className="rounded-md py-2 text-sm data-[state=active]:bg-green-600 data-[state=active]:text-white">
-              我的
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="form" className="mt-0">
-            <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} editingId={editingId} submitting={submitting} showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />
-          </TabsContent>
-
-          <TabsContent value="all" className="mt-0">
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  全部记录
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {filteredRecords.map(record => <RecordCard key={record._id} record={record} onView={handleViewRecord} onEdit={handleEdit} />)}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="mine" className="mt-0">
-            <Card className="border-0 shadow-sm rounded-xl">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  我的记录
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {myRecords.length === 0 ? <div className="text-center py-8">
-                      <p className="text-gray-500 mb-2">暂无记录</p>
-                      <p className="text-sm text-gray-400">
-                        {!$w?.auth?.currentUser?.openid ? "扫码用户也可以看到自己的记录" : "您还没有提交过项目信息"}
-                      </p>
-                    </div> : myRecords.map(record => <RecordCard key={record._id} record={record} onView={handleViewRecord} onEdit={handleEdit} isMine={true} />)}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* 地址选择器 */}
-        {showLocationPicker && <ChinaLocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSelect={handleLocationSelect} />}
-
-        {/* 重复数据确认弹框 */}
-        <DuplicateConfirmDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog} onConfirm={handleConfirmDuplicate} onCancel={handleCancelDuplicate} duplicateRecords={duplicateRecords} />
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+          </div>
+          <p className="text-gray-600 font-medium">加载中...</p>
+        </div>
       </div>
-    </div>;
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+      {/* 顶部装饰 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
+
+      <div className="relative z-10 pb-8">
+        <div className="max-w-lg mx-auto px-4">
+          {/* 页面头部 */}
+          <div className="pt-8 pb-6 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+              <div className="text-2xl">🏗️</div>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">新能源项目管理</h1>
+            <p className="text-gray-600">项目信息填报与管理系统</p>
+          </div>
+
+          <Tabs defaultValue="form" className="w-full">
+            {/* 标签页导航 */}
+            <div className="mb-6">
+              <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg border border-white/20">
+                <TabsTrigger
+                  value="form"
+                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <span>{editingId ? '✏️' : '📝'}</span>
+                    <span>{editingId ? '编辑' : '填报'}</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="all"
+                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span>全部</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger
+                  value="mine"
+                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    <span>我的</span>
+                  </div>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            {/* 填报页面 */}
+            <TabsContent value="form" className="mt-0">
+              <ProjectForm
+                formData={formData}
+                onInputChange={handleInputChange}
+                onLocationSelect={handleLocationSelect}
+                onSubmit={handleSubmit}
+                onReset={resetForm}
+                editingId={editingId}
+                submitting={submitting}
+                showDatePicker={showDatePicker}
+                setShowDatePicker={setShowDatePicker}
+                showLocationPicker={showLocationPicker}
+                setShowLocationPicker={setShowLocationPicker}
+              />
+            </TabsContent>
+
+            {/* 全部记录页面 */}
+            <TabsContent value="all" className="mt-0">
+              <Card className="border-0 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm mx-4 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-1"></div>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
+                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                      <Users className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <div>全部记录</div>
+                      <div className="text-sm font-normal text-gray-600">共 {filteredRecords.length} 条记录</div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {filteredRecords.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">📋</div>
+                        <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
+                        <p className="text-sm text-gray-400">还没有人提交项目信息</p>
+                      </div>
+                    ) : (
+                      filteredRecords.map(record => (
+                        <RecordCard
+                          key={record._id}
+                          record={record}
+                          onView={handleViewRecord}
+                          onEdit={handleEdit}
+                        />
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* 我的记录页面 */}
+            <TabsContent value="mine" className="mt-0">
+              <Card className="border-0 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm mx-4 overflow-hidden">
+                <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1"></div>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <div>我的记录</div>
+                      <div className="text-sm font-normal text-gray-600">共 {myRecords.length} 条记录</div>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {myRecords.length === 0 ? (
+                      <div className="text-center py-12">
+                        <div className="text-6xl mb-4">🗂️</div>
+                        <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
+                        <p className="text-sm text-gray-400 mb-4">
+                          {!$w?.auth?.currentUser?.openid ? "扫码用户也可以看到自己的记录" : "您还没有提交过项目信息"}
+                        </p>
+                        <div className="space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
+                          <p>💡 提示：</p>
+                          <p>• 提交后的记录会显示在这里</p>
+                          <p>• 您可以随时查看和编辑自己的记录</p>
+                        </div>
+                      </div>
+                    ) : (
+                      myRecords.map(record => (
+                        <RecordCard
+                          key={record._id}
+                          record={record}
+                          onView={handleViewRecord}
+                          onEdit={handleEdit}
+                          isMine={true}
+                        />
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
+          {/* 地址选择器 */}
+          {showLocationPicker && (
+            <ChinaLocationPicker
+              open={showLocationPicker}
+              onOpenChange={setShowLocationPicker}
+              onSelect={handleLocationSelect}
+            />
+          )}
+
+          {/* 重复数据确认弹框 */}
+          <DuplicateConfirmDialog
+            open={showDuplicateDialog}
+            onOpenChange={setShowDuplicateDialog}
+            onConfirm={handleConfirmDuplicate}
+            onCancel={handleCancelDuplicate}
+            duplicateRecords={duplicateRecords}
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
