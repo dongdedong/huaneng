@@ -65,8 +65,6 @@ export default function ProjectDataDashboard(props) {
         dataSourceName: 'project_report',
         methodName: 'wedaGetRecordsV2',
         params: {
-          filter: {},
-          select: ['projectName', 'city', 'projectLocation'],
           pageSize: 1000
         }
       });
@@ -157,13 +155,12 @@ export default function ProjectDataDashboard(props) {
             params: {
               filter: {
                 where: {
-                  $and: [
-                    { contactDate: { $gte: startDate } },
-                    { contactDate: { $lte: endDate } }
-                  ]
+                  contactDate: {
+                    $gte: startDate,
+                    $lte: endDate
+                  }
                 }
               },
-              select: ['department'],
               pageSize: 1000
             }
           });
@@ -192,13 +189,12 @@ export default function ProjectDataDashboard(props) {
             params: {
               filter: {
                 where: {
-                  $and: [
-                    { contactDate: { $gte: startDate } },
-                    { contactDate: { $lte: endDate } }
-                  ]
+                  contactDate: {
+                    $gte: startDate,
+                    $lte: endDate
+                  }
                 }
               },
-              select: ['department', 'projectCapacity'],
               pageSize: 1000
             }
           });
@@ -231,13 +227,12 @@ export default function ProjectDataDashboard(props) {
             params: {
               filter: {
                 where: {
-                  $and: [
-                    { contactDate: { $gte: startDate } },
-                    { contactDate: { $lte: endDate } }
-                  ]
+                  contactDate: {
+                    $gte: startDate,
+                    $lte: endDate
+                  }
                 }
               },
-              select: ['city'],
               pageSize: 1000
             }
           });
@@ -266,13 +261,12 @@ export default function ProjectDataDashboard(props) {
             params: {
               filter: {
                 where: {
-                  $and: [
-                    { contactDate: { $gte: startDate } },
-                    { contactDate: { $lte: endDate } }
-                  ]
+                  contactDate: {
+                    $gte: startDate,
+                    $lte: endDate
+                  }
                 }
               },
-              select: ['city', 'projectCapacity'],
               pageSize: 1000
             }
           });
