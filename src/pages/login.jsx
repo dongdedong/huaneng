@@ -114,7 +114,8 @@ const LoginPage = props => {
         }));
         toast({
           title: "登录成功",
-          description: `欢迎回来，${validation.user.name}！`
+          description: `欢迎回来，${validation.user.name}！`,
+          duration: 1000
         });
 
         // 延迟跳转，让用户看到成功提示

@@ -291,7 +291,8 @@ export default function ProjectReport(props) {
       if (createResult.id) {
         toast({
           title: "提交成功",
-          description: "项目信息已保存"
+          description: "项目信息已保存",
+          duration: 1000
         });
       } else {
         throw new Error('创建失败：未返回记录ID');

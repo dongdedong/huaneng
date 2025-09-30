@@ -1195,6 +1195,7 @@ const PickerColumn = forwardRef(({
     return Math.round(scrollTop / itemHeight);
   };
 
+
   // 滚动到指定索引
   const scrollToIndex = (index, smooth = true) => {
     if (containerRef.current) {
@@ -1217,31 +1218,41 @@ const PickerColumn = forwardRef(({
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // 实时更新选中项（不触发吸附）
-    const selectedIndex = getCurrentSelectedIndex(currentScrollTop);
-    const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
-
-    if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
-      onSelect(items[clampedIndex].code);
-    }
-
-    // 设置新的定时器，在滚动停止后执行吸附
+    // 设置新的定时器，在滚动停止后执行吸附和选择更新
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
       snapToNearestItem(currentScrollTop);
-    }, 100);
+
+      // 只在滚动停止后更新选中项，避免滚动过程中的频繁调用
+      const maxScrollTop = (items.length - 1) * itemHeight;
+      const minScrollTop = 0;
+      const clampedScrollTop = Math.max(minScrollTop, Math.min(currentScrollTop, maxScrollTop));
+      const selectedIndex = getCurrentSelectedIndex(clampedScrollTop);
+      const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
+
+      if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
+        onSelect(items[clampedIndex].code);
+      }
+    }, 150);
   };
 
   // 吸附到最近的项目
   const snapToNearestItem = (currentScrollTop) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || items.length === 0) return;
 
-    const selectedIndex = getCurrentSelectedIndex(currentScrollTop);
+    const maxScrollTop = (items.length - 1) * itemHeight;
+    const minScrollTop = 0;
+
+    // 确保滚动位置在有效范围内
+    const clampedScrollTop = Math.max(minScrollTop, Math.min(currentScrollTop, maxScrollTop));
+
+    const rawIndex = clampedScrollTop / itemHeight;
+    const selectedIndex = Math.round(rawIndex);
     const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
     const targetScrollTop = clampedIndex * itemHeight;
 
     // 只有当位置偏差超过1px时才进行吸附
-    if (Math.abs(currentScrollTop - targetScrollTop) > 1) {
+    if (Math.abs(clampedScrollTop - targetScrollTop) > 1) {
       containerRef.current.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth'
@@ -1360,6 +1371,15 @@ export function ChinaLocationPicker({
   const [selectedCity, setSelectedCity] = useState('4101');
   const [selectedCounty, setSelectedCounty] = useState('410102');
 
+  // 确保在对话框打开时初始化默认选择
+  React.useEffect(() => {
+    if (open) {
+      setSelectedProvince('41');
+      setSelectedCity('4101');
+      setSelectedCounty('410102');
+    }
+  }, [open]);
+
   // 只显示河南省数据
   const provinces = [{ code: '41', name: '河南省' }];
   const cities = chinaRegions.cities['41'] || [];
@@ -1380,6 +1400,17 @@ export function ChinaLocationPicker({
       setSelectedCounty('');
     }
   };
+
+  // 监听城市变化，确保区县数据正确联动
+  React.useEffect(() => {
+    if (selectedCity) {
+      const currentCounties = chinaRegions.counties[selectedCity] || [];
+      if (currentCounties.length > 0 && !currentCounties.find(c => c.code === selectedCounty)) {
+        // 如果当前选中的区县不属于当前城市，重置为第一个
+        setSelectedCounty(currentCounties[0].code);
+      }
+    }
+  }, [selectedCity]);
   const handleConfirm = () => {
     if (selectedProvince && selectedCity && selectedCounty) {
       const province = provinces.find(p => p.code === selectedProvince)?.name || '';
