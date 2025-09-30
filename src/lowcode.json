@@ -1,13 +1,4 @@
 {
   "main": "project-report",
-  "items": [
-    {
-      "id": "login",
-      "path": "/login"
-    },
-    {
-      "id": "project-report",
-      "path": "/project-report"
-    }
-  ]
+  "items": []
 }

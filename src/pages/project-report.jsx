@@ -50,7 +50,8 @@ export default function ProjectReport(props) {
     projectType: '',
     partnerUnit: '',
     reporterName: '',
-    reporterPhone: ''
+    reporterPhone: '',
+    projectDepartment: ''
   });
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -63,6 +64,22 @@ export default function ProjectReport(props) {
   useEffect(() => {
     // 组件挂载时设置ref为true
     isMountedRef.current = true;
+
+    // 自动填入登录用户信息
+    try {
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        const currentUser = JSON.parse(userData);
+        setFormData(prev => ({
+          ...prev,
+          reporterName: currentUser.name || '',
+          reporterPhone: currentUser.phone || '',
+          projectDepartment: currentUser.department || ''
+        }));
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+    }
 
     // 清理函数：组件卸载时设置ref为false
     return () => {
@@ -103,7 +120,7 @@ export default function ProjectReport(props) {
                 }
               }, {
                 partner_unit: {
-                  $eq: formData.partnerUnit || ''
+                  $eq: formData.partnerUnit
                 }
               }]
             }
@@ -157,8 +174,25 @@ export default function ProjectReport(props) {
       projectType: '',
       partnerUnit: '',
       reporterName: '',
-      reporterPhone: ''
+      reporterPhone: '',
+      projectDepartment: ''
     });
+
+    // 重置后重新填入用户信息
+    try {
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        const currentUser = JSON.parse(userData);
+        setFormData(prev => ({
+          ...prev,
+          reporterName: currentUser.name || '',
+          reporterPhone: currentUser.phone || '',
+          projectDepartment: currentUser.department || ''
+        }));
+      }
+    } catch (error) {
+      console.error('重置表单时获取用户信息失败:', error);
+    }
   };
 
   // 实际提交数据 - 添加组件挂载检查
@@ -181,7 +215,7 @@ export default function ProjectReport(props) {
         },
         project_department: currentUser?.department || formData.projectDepartment,
         project_type: formData.projectType,
-        partner_unit: formData.partnerUnit || '',
+        partner_unit: formData.partnerUnit,
         reporter_name: formData.reporterName,
         reporter_phone: formData.reporterPhone,
         _openid: currentOpenid,
@@ -233,7 +267,7 @@ export default function ProjectReport(props) {
   };
   const handleSubmit = async () => {
     // 表单验证
-    if (!formData.projectDepartment || !formData.projectType || !formData.reporterName || !formData.reporterPhone) {
+    if (!formData.projectDepartment || !formData.projectType || !formData.partnerUnit || !formData.reporterName || !formData.reporterPhone) {
       toast({
         title: "表单不完整",
         description: "请填写所有必填项",

@@ -160,13 +160,13 @@ export function ProjectForm({
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
               <Users className="h-5 w-5 text-green-600" />
-              项目合作单位
+              项目合作单位 <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
               <Input
                 value={formData.partnerUnit}
                 onChange={e => onInputChange('partnerUnit', e.target.value)}
-                placeholder="请输入合作单位名称（选填）"
+                placeholder="请输入合作单位名称"
                 className="h-14 pl-12 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
               />
               <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />

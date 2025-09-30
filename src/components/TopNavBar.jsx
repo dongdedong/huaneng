@@ -33,13 +33,8 @@ const TopNavBar = (props) => {
 
     // 延迟跳转到登录页
     setTimeout(() => {
-      // 使用微搭平台的路由API
-      if ($w && $w.utils && $w.utils.navigateTo) {
-        $w.utils.navigateTo({ pageId: 'login' });
-      } else {
-        // 备用方案
-        window.location.replace('/login');
-      }
+      // 对于微搭平台，使用简单的location跳转
+      window.location.replace('/login');
     }, 1000);
   };
   if (!currentUser) return null;
