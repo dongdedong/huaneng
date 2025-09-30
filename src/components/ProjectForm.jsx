@@ -1,9 +1,9 @@
 // @ts-ignore;
 import React, { useEffect, useState } from 'react';
 // @ts-ignore;
-import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
+import { Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 // @ts-ignore;
-import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone, Zap } from 'lucide-react';
+import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone, Zap, ChevronDown } from 'lucide-react';
 
 
 export function ProjectForm({
@@ -44,58 +44,58 @@ export function ProjectForm({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* 页面标题 */}
-      <div className="text-center py-4">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <div className="text-center py-2">
+        <h1 className="text-xl font-bold text-gray-900 mb-1">
           📝 项目信息填报
         </h1>
-        <p className="text-gray-600 text-sm">
+        <p className="text-gray-600 text-xs">
           请准确填写项目相关信息，带 * 的为必填项
         </p>
       </div>
 
       {/* 表单卡片 */}
-      <Card className="border-0 shadow-lg rounded-2xl bg-white mx-4 overflow-hidden">
+      <Card className="border-0 shadow-lg rounded-xl bg-white overflow-hidden">
         <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1"></div>
 
-        <CardContent className="p-6 space-y-8">
+        <CardContent className="p-3 space-y-4">
           {/* 项目对接日期 */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <Calendar className="h-5 w-5 text-green-600" />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <Calendar className="h-4 w-4 text-green-600" />
               项目对接日期
             </Label>
-            <div className="w-full h-14 flex items-center px-4 rounded-2xl border-2 border-gray-200 bg-gray-50/30">
-              <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-              <span className="text-gray-900 font-medium">
+            <div className="w-full h-12 flex items-center px-3 rounded-xl border-2 border-gray-200 bg-gray-50/30">
+              <Calendar className="h-4 w-4 text-gray-400 mr-2" />
+              <span className="text-gray-900 font-medium text-sm">
                 {formatDate(new Date())}
               </span>
-              <span className="ml-2 text-sm text-gray-500">(今日)</span>
+              <span className="ml-2 text-xs text-gray-500">(今日)</span>
             </div>
           </div>
 
           {/* 项目所在地 */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <MapPin className="h-5 w-5 text-green-600" />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <MapPin className="h-4 w-4 text-green-600" />
               项目所在地 <span className="text-red-500">*</span>
             </Label>
             <Button
               variant="outline"
               onClick={() => setShowLocationPicker(true)}
-              className="w-full h-14 justify-between rounded-2xl border-2 border-gray-200 bg-gray-50/50 hover:bg-gray-50 hover:border-green-300 transition-all duration-200"
+              className="w-full h-12 justify-between rounded-xl border-2 border-gray-200 bg-gray-50/50 hover:bg-gray-50 hover:border-green-300 transition-all duration-200"
             >
               <div className="flex items-center">
-                <MapPin className="h-5 w-5 text-gray-400 mr-3" />
-                <span className={formData.projectLocation.full_address ? 'text-gray-900' : 'text-gray-500'}>
+                <MapPin className="h-4 w-4 text-gray-400 mr-2" />
+                <span className={formData.projectLocation.full_address ? 'text-gray-900 text-sm' : 'text-gray-500 text-sm'}>
                   {formData.projectLocation.full_address || '请选择项目所在地址'}
                 </span>
               </div>
             </Button>
             {formData.projectLocation.full_address && (
-              <div className="px-4 py-3 bg-green-50 rounded-xl border border-green-200">
-                <p className="text-sm text-green-800 font-medium">
+              <div className="px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+                <p className="text-xs text-green-800 font-medium">
                   📍 {formData.projectLocation.province}-{formData.projectLocation.city}-{formData.projectLocation.county}
                 </p>
               </div>
@@ -103,64 +103,47 @@ export function ProjectForm({
           </div>
 
           {/* 项目开发部 */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <Building2 className="h-5 w-5 text-green-600" />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <Building2 className="h-4 w-4 text-green-600" />
               项目开发部
             </Label>
-            <div className="w-full h-14 flex items-center px-4 rounded-2xl border-2 border-gray-200 bg-gray-50/30">
-              <Building2 className="h-5 w-5 text-gray-400 mr-3" />
-              <span className="text-gray-900 font-medium">
+            <div className="w-full h-12 flex items-center px-3 rounded-xl border-2 border-gray-200 bg-gray-50/30">
+              <Building2 className="h-4 w-4 text-gray-400 mr-2" />
+              <span className="text-gray-900 font-medium text-sm">
                 {currentUser?.department || '加载中...'}
               </span>
-              <span className="ml-2 text-sm text-gray-500">(当前用户部门)</span>
+              <span className="ml-2 text-xs text-gray-500">(当前用户部门)</span>
             </div>
           </div>
 
           {/* 项目类型 */}
-          <div className="space-y-4">
-            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <Lightbulb className="h-5 w-5 text-green-600" />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <Lightbulb className="h-4 w-4 text-green-600" />
               项目类型 <span className="text-red-500">*</span>
             </Label>
-            <RadioGroup
-              value={formData.projectType}
-              onValueChange={value => onInputChange('projectType', value)}
-              className="space-y-3"
-            >
-              {projectTypes.map(type => (
-                <div
-                  key={type}
-                  className={`flex items-center space-x-4 p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
-                    formData.projectType === type
-                      ? 'border-green-500 bg-green-50 shadow-md'
-                      : 'border-gray-200 bg-gray-50/50 hover:border-green-300 hover:bg-green-50/50'
-                  }`}
-                  onClick={() => onInputChange('projectType', type)}
-                >
-                  <RadioGroupItem
-                    value={type}
-                    id={type}
-                    className="text-green-600 border-gray-400 w-5 h-5"
-                  />
-                  <Label
-                    htmlFor={type}
-                    className="text-sm font-medium text-gray-800 cursor-pointer flex-1"
-                  >
-                    {type}
-                  </Label>
-                  {formData.projectType === type && (
-                    <div className="text-green-600 text-lg">✓</div>
-                  )}
+            <Select value={formData.projectType} onValueChange={value => onInputChange('projectType', value)}>
+              <SelectTrigger className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200">
+                <div className="flex items-center">
+                  <Lightbulb className="h-4 w-4 text-gray-400 mr-2" />
+                  <SelectValue placeholder="请选择项目类型" />
                 </div>
-              ))}
-            </RadioGroup>
+              </SelectTrigger>
+              <SelectContent>
+                {projectTypes.map(type => (
+                  <SelectItem key={type} value={type} className="text-sm">
+                    {type}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* 项目容量 */}
-          <div className="space-y-3">
-            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
-              <Zap className="h-5 w-5 text-green-600" />
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2 text-sm font-semibold text-gray-800">
+              <Zap className="h-4 w-4 text-green-600" />
               项目容量 <span className="text-red-500">*</span>
             </Label>
             <div className="relative">
@@ -202,9 +185,9 @@ export function ProjectForm({
                 value={formData.partnerUnit}
                 onChange={e => onInputChange('partnerUnit', e.target.value)}
                 placeholder="请输入合作单位名称"
-                className="h-14 pl-12 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
+                className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
               />
-              <Users className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             </div>
           </div>
 
@@ -226,7 +209,7 @@ export function ProjectForm({
                   value={formData.reporterName}
                   onChange={e => onInputChange('reporterName', e.target.value)}
                   placeholder="请输入您的真实姓名"
-                  className="h-14 pl-12 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
+                  className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
                 />
                 <User className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
@@ -245,7 +228,7 @@ export function ProjectForm({
                   onChange={e => onInputChange('reporterPhone', e.target.value)}
                   placeholder="请输入11位手机号"
                   maxLength={11}
-                  className="h-14 pl-12 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
+                  className="h-12 pl-10 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
                 />
                 <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               </div>
@@ -274,15 +257,15 @@ export function ProjectForm({
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex gap-4 pt-6">
+          <div className="flex gap-3 pt-4">
             <Button
               onClick={onSubmit}
               disabled={submitting}
-              className="flex-1 h-14 rounded-2xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+              className="flex-1 h-12 rounded-xl bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
             >
               {submitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   处理中...
                 </div>
               ) : (
@@ -294,12 +277,12 @@ export function ProjectForm({
       </Card>
 
       {/* 温馨提示 */}
-      <div className="mx-4 p-4 bg-blue-50 rounded-2xl border border-blue-200">
-        <div className="flex items-start gap-3">
-          <div className="text-blue-500 text-lg">💡</div>
+      <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+        <div className="flex items-start gap-2">
+          <div className="text-blue-500 text-base">💡</div>
           <div>
-            <h4 className="font-semibold text-blue-800 mb-1">温馨提示</h4>
-            <ul className="text-sm text-blue-700 space-y-1">
+            <h4 className="font-semibold text-blue-800 mb-1 text-sm">温馨提示</h4>
+            <ul className="text-xs text-blue-700 space-y-1">
               <li>• 请确保填写的信息真实准确</li>
               <li>• 手机号将用于后续项目沟通联系</li>
               <li>• 提交后系统将保存项目信息</li>

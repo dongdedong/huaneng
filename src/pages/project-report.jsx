@@ -403,8 +403,8 @@ export default function ProjectReport(props) {
       {/* 顶部装饰 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
 
-      <div className="relative z-10 pb-8 pt-4">
-        <div className="max-w-lg mx-auto px-4">
+      <div className="relative z-10 pb-4 pt-2">
+        <div className="max-w-sm mx-auto px-2">
 
           {/* 填报表单 */}
           <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} submitting={submitting} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />

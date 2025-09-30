@@ -148,45 +148,45 @@ const LoginPage = props => {
       setIsLoading(false);
     }
   };
-  return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Card className="border-0 shadow-2xl rounded-3xl bg-white/95 backdrop-blur-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-green-500 h-2"></div>
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 flex items-center justify-center px-2 py-4">
+      <div className="w-full max-w-sm">
+        <Card className="border-0 shadow-2xl rounded-2xl bg-white/95 backdrop-blur-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
 
-          <CardHeader className="text-center pb-8 pt-8">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <LogIn className="h-10 w-10 text-white" />
+          <CardHeader className="text-center pb-4 pt-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+              <LogIn className="h-8 w-8 text-white" />
             </div>
-            <CardTitle className="text-2xl font-bold text-gray-800 mb-2">
+            <CardTitle className="text-xl font-bold text-gray-800 mb-1">
               项目填报系统
             </CardTitle>
-            <p className="text-gray-600 text-sm">
+            <p className="text-gray-600 text-xs">
               请登录您的账户以继续
             </p>
           </CardHeader>
 
-          <CardContent className="px-8 pb-8">
-            <form onSubmit={handleLogin} className="space-y-6">
+          <CardContent className="px-4 pb-6">
+            <form onSubmit={handleLogin} className="space-y-4">
               {/* 用户名输入 */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-base font-semibold text-gray-700">
+                <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                   <User className="h-4 w-4 text-blue-600" />
                   用户名
                 </Label>
-                <Input type="text" value={formData.username} onChange={e => handleInputChange('username', e.target.value)} placeholder="请输入用户名" className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
+                <Input type="text" value={formData.username} onChange={e => handleInputChange('username', e.target.value)} placeholder="请输入用户名" className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
               </div>
 
               {/* 密码输入 */}
               <div className="space-y-2">
-                <Label className="flex items-center gap-2 text-base font-semibold text-gray-700">
+                <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                   <Lock className="h-4 w-4 text-blue-600" />
                   密码
                 </Label>
-                <Input type="password" value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder="请输入密码" className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
+                <Input type="password" value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder="请输入密码" className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
               </div>
 
               {/* 登录按钮 */}
-              <Button type="submit" disabled={isLoading} className="w-full h-12 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
+              <Button type="submit" disabled={isLoading} className="w-full h-11 mt-6 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
                 {isLoading ? <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     登录中...
@@ -198,8 +198,8 @@ const LoginPage = props => {
             </form>
 
             {/* 示例账号提示 */}
-            <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <h4 className="font-semibold text-blue-800 mb-2 text-sm">测试账号</h4>
+            <div className="mt-6 p-3 bg-blue-50 rounded-xl border border-blue-200">
+              <h4 className="font-semibold text-blue-800 mb-2 text-xs">测试账号</h4>
               <div className="text-xs text-blue-700 space-y-1">
                 <div>• 管理员：admin / 123456</div>
                 <div>• 张三：zhangsan / 123456</div>
