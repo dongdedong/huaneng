@@ -1,0 +1,82 @@
+
+{
+  "name": "project_report",
+  "title": "项目信息填报",
+  "schemas": [
+    {
+      "name": "project_date",
+      "title": "项目对接日期",
+      "type": "Date",
+      "format": "date"
+    },
+    {
+      "name": "project_location",
+      "title": "项目所在地",
+      "type": "Object",
+      "properties": {
+        "province": {
+          "type": "String",
+          "title": "省份"
+        },
+        "city": {
+          "type": "String",
+          "title": "城市"
+        },
+        "county": {
+          "type": "String",
+          "title": "区县"
+        },
+        "full_address": {
+          "type": "String",
+          "title": "完整地址"
+        }
+      }
+    },
+    {
+      "name": "project_department",
+      "title": "项目开发部",
+      "type": "String",
+      "enum": ["规划部", "豫北项目开发部", "灵宝项目开发部", "南阳项目开发部", "省直项目开发部", "郑州项目开发部", "开封项目开发部", "许昌项目开发部", "漯河项目开发部", "商丘项目开发部", "周口项目开发部"]
+    },
+    {
+      "name": "project_type",
+      "title": "项目类型",
+      "type": "String",
+      "enum": ["分布式光伏", "集中式光伏", "分散式风电", "集中式风电", "源网荷储项目", "千乡万村御风行动"]
+    },
+    {
+      "name": "partner_unit",
+      "title": "项目合作单位",
+      "type": "String"
+    },
+    {
+      "name": "reporter_name",
+      "title": "填表人",
+      "type": "String"
+    },
+    {
+      "name": "reporter_phone",
+      "title": "填表人电话",
+      "type": "String",
+      "pattern": "^1[3-9]\\d{9}$"
+    },
+    {
+      "name": "user_id",
+      "title": "用户ID",
+      "type": "String"
+    },
+    {
+      "name": "status",
+      "title": "填报状态",
+      "type": "String",
+      "enum": ["draft", "submitted", "approved", "rejected"],
+      "default": "submitted"
+    },
+    {
+      "name": "remark",
+      "title": "备注",
+      "type": "MultiLineString"
+    }
+  ]
+}
+  
