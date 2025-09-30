@@ -1,4 +1,15 @@
 {
   "main": "login",
-  "items": []
+  "items": [
+    {
+      "id": "login",
+      "name": "登录页面",
+      "path": "pages/login.jsx"
+    },
+    {
+      "id": "project-report",
+      "name": "项目填报页面",
+      "path": "pages/project-report.jsx"
+    }
+  ]
 }
