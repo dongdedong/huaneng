@@ -2,8 +2,12 @@
   "main": "project-report",
   "items": [
     {
-      "pageId": "login",
+      "id": "login",
       "path": "/login"
+    },
+    {
+      "id": "project-report",
+      "path": "/project-report"
     }
   ]
 }
