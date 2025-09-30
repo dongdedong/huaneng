@@ -18,17 +18,26 @@ const LoginPage = () => {
   // 从数据库验证用户账号
   const validateUser = async (username, password) => {
     try {
-      // 使用CloudBase数据源查询用户
+      // 使用CloudBase数据源查询用户 - 使用正确的V2 API
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'users',
-        methodName: 'wedaGetRecords',
+        methodName: 'wedaGetRecordsV2',
         params: {
-          where: {
-            username: {
-              $eq: username
-            },
-            password: {
-              $eq: password
+          filter: {
+            where: {
+              $and: [{
+                username: {
+                  $eq: username
+                }
+              }, {
+                password: {
+                  $eq: password
+                }
+              }, {
+                status: {
+                  $eq: 'active'
+                }
+              }]
             }
           },
           select: {
@@ -36,8 +45,11 @@ const LoginPage = () => {
             name: true,
             phone: true,
             department: true,
-            createdAt: true
-          }
+            role: true,
+            status: true
+          },
+          pageSize: 1,
+          pageNumber: 1
         }
       });
       if (result && result.records && result.records.length > 0) {
@@ -48,13 +60,14 @@ const LoginPage = () => {
             username: user.username,
             name: user.name,
             phone: user.phone,
-            department: user.department
+            department: user.department,
+            role: user.role
           }
         };
       } else {
         return {
           success: false,
-          message: '用户名或密码错误'
+          message: '用户名或密码错误，或账户未激活'
         };
       }
     } catch (error) {
@@ -93,6 +106,7 @@ const LoginPage = () => {
           name: validation.user.name,
           phone: validation.user.phone,
           department: validation.user.department,
+          role: validation.user.role,
           loginTime: new Date().toISOString()
         }));
         toast({
