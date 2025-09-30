@@ -65,19 +65,14 @@ export default function ProjectReport(props) {
   const [duplicateRecords, setDuplicateRecords] = useState([]);
   const [activeTab, setActiveTab] = useState('form');
 
-  // 获取当前用户的_openid
-  const getCurrentUserOpenid = async () => {
+  // 获取当前用户的_openid - 直接使用auth信息
+  const getCurrentUserOpenid = () => {
     try {
-      // 使用云函数获取_openid，这样即使匿名用户也能获取到
-      const result = await $w.cloud.callFunction({
-        name: 'getOpenid',
-        data: {}
-      });
-      return result.result.openid;
+      // 直接从auth获取_openid，避免云函数调用失败
+      return $w?.auth?.currentUser?.openid || 'anonymous';
     } catch (error) {
       console.error('获取_openid失败:', error);
-      // 如果云函数调用失败，尝试从auth获取
-      return $w?.auth?.currentUser?.openid || 'anonymous';
+      return 'anonymous';
     }
   };
 
@@ -121,7 +116,7 @@ export default function ProjectReport(props) {
   // 加载当前用户的记录
   const loadMyRecords = async () => {
     try {
-      const currentOpenid = await getCurrentUserOpenid();
+      const currentOpenid = getCurrentUserOpenid();
       console.log('当前用户_openid:', currentOpenid);
       if (currentOpenid && currentOpenid !== 'anonymous') {
         const userRecords = await $w.cloud.callDataSource({
@@ -183,8 +178,8 @@ export default function ProjectReport(props) {
 
   // 监听_openid变化
   useEffect(() => {
-    const checkOpenidStatus = async () => {
-      const currentOpenid = await getCurrentUserOpenid();
+    const checkOpenidStatus = () => {
+      const currentOpenid = getCurrentUserOpenid();
       console.log('_openid状态变化，当前_openid:', currentOpenid);
       if (currentOpenid && currentOpenid !== 'anonymous') {
         loadMyRecords();
@@ -238,7 +233,7 @@ export default function ProjectReport(props) {
   const submitData = async () => {
     setSubmitting(true);
     try {
-      const currentOpenid = await getCurrentUserOpenid();
+      const currentOpenid = getCurrentUserOpenid();
       console.log('提交时的_openid:', currentOpenid);
       const recordData = {
         project_date: formatDateISO(formData.projectDate),
@@ -388,11 +383,10 @@ export default function ProjectReport(props) {
   };
 
   // 删除记录
-  const handleDeleteRecord = async (record) => {
+  const handleDeleteRecord = async record => {
     if (!confirm(`确定要删除这条记录吗？\n项目地址：${record.project_location?.full_address || '未知'}\n提交时间：${new Date(record.createdAt).toLocaleString()}`)) {
       return;
     }
-
     try {
       const deleteResult = await $w.cloud.callDataSource({
         dataSourceName: 'project_report',
@@ -407,7 +401,6 @@ export default function ProjectReport(props) {
           }
         }
       });
-
       if (deleteResult.count > 0) {
         toast({
           title: "删除成功",
@@ -437,20 +430,16 @@ export default function ProjectReport(props) {
     });
   };
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
+    return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin text-green-600" />
           </div>
           <p className="text-gray-600 font-medium">加载中...</p>
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+  return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
       {/* 顶部装饰 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
 
@@ -469,19 +458,13 @@ export default function ProjectReport(props) {
             {/* 标签页导航 */}
             <div className="mb-6">
               <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm rounded-2xl p-1 shadow-lg border border-white/20">
-                <TabsTrigger
-                  value="form"
-                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
-                >
+                <TabsTrigger value="form" className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]">
                   <div className="flex items-center gap-2">
                     <span>{editingId ? '✏️' : '📝'}</span>
                     <span>{editingId ? '编辑' : '填报'}</span>
                   </div>
                 </TabsTrigger>
-                <TabsTrigger
-                  value="mine"
-                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
-                >
+                <TabsTrigger value="mine" className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]">
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     <span>我的填报</span>
@@ -492,19 +475,7 @@ export default function ProjectReport(props) {
 
             {/* 填报页面 */}
             <TabsContent value="form" className="mt-0">
-              <ProjectForm
-                formData={formData}
-                onInputChange={handleInputChange}
-                onLocationSelect={handleLocationSelect}
-                onSubmit={handleSubmit}
-                onReset={resetForm}
-                editingId={editingId}
-                submitting={submitting}
-                showDatePicker={showDatePicker}
-                setShowDatePicker={setShowDatePicker}
-                showLocationPicker={showLocationPicker}
-                setShowLocationPicker={setShowLocationPicker}
-              />
+              <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} editingId={editingId} submitting={submitting} showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />
             </TabsContent>
 
 
@@ -525,8 +496,7 @@ export default function ProjectReport(props) {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
-                    {myRecords.length === 0 ? (
-                      <div className="text-center py-12">
+                    {myRecords.length === 0 ? <div className="text-center py-12">
                         <div className="text-6xl mb-4">🗂️</div>
                         <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
                         <p className="text-sm text-gray-400 mb-4">
@@ -538,19 +508,7 @@ export default function ProjectReport(props) {
                           <p>• 您可以随时查看、编辑和删除自己的记录</p>
                           <p>• 点击记录右上角的图标进行操作</p>
                         </div>
-                      </div>
-                    ) : (
-                      myRecords.map(record => (
-                        <RecordCard
-                          key={record._id}
-                          record={record}
-                          onView={handleViewRecord}
-                          onEdit={handleEdit}
-                          onDelete={handleDeleteRecord}
-                          isMine={true}
-                        />
-                      ))
-                    )}
+                      </div> : myRecords.map(record => <RecordCard key={record._id} record={record} onView={handleViewRecord} onEdit={handleEdit} onDelete={handleDeleteRecord} isMine={true} />)}
                   </div>
                 </CardContent>
               </Card>
@@ -558,24 +516,11 @@ export default function ProjectReport(props) {
           </Tabs>
 
           {/* 地址选择器 */}
-          {showLocationPicker && (
-            <ChinaLocationPicker
-              open={showLocationPicker}
-              onOpenChange={setShowLocationPicker}
-              onSelect={handleLocationSelect}
-            />
-          )}
+          {showLocationPicker && <ChinaLocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSelect={handleLocationSelect} />}
 
           {/* 重复数据确认弹框 */}
-          <DuplicateConfirmDialog
-            open={showDuplicateDialog}
-            onOpenChange={setShowDuplicateDialog}
-            onConfirm={handleConfirmDuplicate}
-            onCancel={handleCancelDuplicate}
-            duplicateRecords={duplicateRecords}
-          />
+          <DuplicateConfirmDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog} onConfirm={handleConfirmDuplicate} onCancel={handleCancelDuplicate} duplicateRecords={duplicateRecords} />
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
