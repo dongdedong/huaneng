@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger, useToast } from '@/components/ui';
 // @ts-ignore;
-import { FileText, Clock, Loader2 } from 'lucide-react';
+import { FileText, Clock, Loader2, RefreshCw } from 'lucide-react';
 
 // @ts-ignore;
 import { ProjectForm } from '@/components/ProjectForm';
@@ -64,6 +64,7 @@ export default function ProjectReport(props) {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateRecords, setDuplicateRecords] = useState([]);
   const [activeTab, setActiveTab] = useState('form');
+  const [refreshing, setRefreshing] = useState(false);
 
   // 获取当前用户的_openid - 直接使用auth信息
   const getCurrentUserOpenid = () => {
@@ -113,12 +114,13 @@ export default function ProjectReport(props) {
     }
   };
 
-  // 加载当前用户的记录
+  // 加载当前用户的记录 - 使用 user_id 字段进行查询
   const loadMyRecords = async () => {
     try {
       const currentOpenid = getCurrentUserOpenid();
       console.log('当前用户_openid:', currentOpenid);
       if (currentOpenid && currentOpenid !== 'anonymous') {
+        // 使用 user_id 字段进行查询，而不是 _openid
         const userRecords = await $w.cloud.callDataSource({
           dataSourceName: 'project_report',
           methodName: 'wedaGetRecordsV2',
@@ -128,7 +130,7 @@ export default function ProjectReport(props) {
             },
             filter: {
               where: {
-                _openid: {
+                user_id: {
                   $eq: currentOpenid
                 }
               }
@@ -170,6 +172,27 @@ export default function ProjectReport(props) {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 手动刷新我的记录
+  const handleRefreshMyRecords = async () => {
+    setRefreshing(true);
+    try {
+      await loadMyRecords();
+      toast({
+        title: "刷新成功",
+        description: "我的记录已更新"
+      });
+    } catch (error) {
+      console.error('刷新记录失败:', error);
+      toast({
+        title: "刷新失败",
+        description: error.message || "请稍后重试",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
     }
   };
   useEffect(() => {
@@ -248,7 +271,8 @@ export default function ProjectReport(props) {
         partner_unit: formData.partnerUnit || '',
         reporter_name: formData.reporterName,
         reporter_phone: formData.reporterPhone,
-        _openid: currentOpenid,
+        user_id: currentOpenid,
+        // 使用 user_id 字段而不是 _openid
         status: 'submitted',
         remark: ''
       };
@@ -420,15 +444,6 @@ export default function ProjectReport(props) {
       });
     }
   };
-
-  // 手动刷新我的记录
-  const handleRefreshMyRecords = async () => {
-    await loadMyRecords();
-    toast({
-      title: "刷新成功",
-      description: "我的记录已更新"
-    });
-  };
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
@@ -484,15 +499,20 @@ export default function ProjectReport(props) {
               <Card className="border-0 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm mx-4 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1"></div>
                 <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
-                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                      <Clock className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div>我的填报</div>
-                      <div className="text-sm font-normal text-gray-600">共 {myRecords.length} 条记录</div>
-                    </div>
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
+                      <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <Clock className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <div>我的填报</div>
+                        <div className="text-sm font-normal text-gray-600">共 {myRecords.length} 条记录</div>
+                      </div>
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" onClick={handleRefreshMyRecords} disabled={refreshing} className="h-10 w-10 p-0 hover:bg-purple-50 hover:text-purple-600 rounded-xl" title="刷新记录">
+                      <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
