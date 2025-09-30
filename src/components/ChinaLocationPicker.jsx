@@ -327,42 +327,42 @@ const chinaRegions = {
   }
 };
 
-// iPhone风格的滚动选择器列
+// 简化版iPhone风格的滚动选择器列
 function PickerColumn({ items, selectedValue, onSelect, className = '', label = '' }) {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
   const itemHeight = 48;
   const visibleCount = 5;
   const totalHeight = itemHeight * visibleCount;
+  const paddingItems = Math.floor(visibleCount / 2);
 
+  // 初始化滚动位置
   useEffect(() => {
-    if (selectedValue !== undefined) {
+    if (selectedValue !== undefined && containerRef.current) {
       const selectedIndex = items.findIndex(item => item.code === selectedValue);
       if (selectedIndex >= 0) {
-        const centerPosition = selectedIndex * itemHeight - (totalHeight / 2) + (itemHeight / 2);
-        setScrollTop(Math.max(0, centerPosition));
-        if (containerRef.current) {
-          containerRef.current.scrollTop = Math.max(0, centerPosition);
-        }
+        // 让选中项居中
+        const targetScrollTop = selectedIndex * itemHeight;
+        containerRef.current.scrollTop = targetScrollTop;
+        setScrollTop(targetScrollTop);
       }
     }
-  }, [selectedValue, items, itemHeight, totalHeight]);
+  }, [selectedValue, items]);
 
+  // 极简的滚动处理
   const handleScroll = (e) => {
-    const scrollTop = e.target.scrollTop;
-    setScrollTop(scrollTop);
+    const currentScrollTop = e.target.scrollTop;
+    setScrollTop(currentScrollTop);
 
-    // 计算当前选中的项目
-    const centerPosition = scrollTop + totalHeight / 2;
-    const selectedIndex = Math.round(centerPosition / itemHeight);
+    // 简单计算：哪个项目最接近中心
+    const selectedIndex = Math.round(currentScrollTop / itemHeight);
     const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
 
+    // 更新选中值
     if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
       onSelect(items[clampedIndex].code);
     }
   };
-
-  const paddingItems = Math.floor(visibleCount / 2);
 
   return (
     <div className={`relative ${className}`}>
@@ -442,6 +442,19 @@ export function ChinaLocationPicker({
   const provinces = chinaRegions.provinces;
   const cities = selectedProvince ? chinaRegions.cities[selectedProvince] || [] : [];
   const counties = selectedCity ? chinaRegions.counties[selectedCity] || [] : [];
+
+  // 省份变化时重置城市和县区
+  const handleProvinceChange = (provinceCode) => {
+    setSelectedProvince(provinceCode);
+    setSelectedCity(''); // 重置城市
+    setSelectedCounty(''); // 重置县区
+  };
+
+  // 城市变化时重置县区
+  const handleCityChange = (cityCode) => {
+    setSelectedCity(cityCode);
+    setSelectedCounty(''); // 重置县区
+  };
   const handleConfirm = () => {
     if (selectedProvince && selectedCity && selectedCounty) {
       const province = provinces.find(p => p.code === selectedProvince)?.name || '';

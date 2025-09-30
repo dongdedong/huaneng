@@ -5,42 +5,42 @@ import { Button, Dialog, DialogContent, DialogHeader, DialogTitle } from '@/comp
 // @ts-ignore;
 import { Calendar, X } from 'lucide-react';
 
-// iPhone风格的滚动选择器列
+// 简化版iPhone风格的滚动选择器列
 function ScrollPicker({ items, selectedValue, onSelect, className = '' }) {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
   const itemHeight = 40;
   const visibleCount = 7;
   const totalHeight = itemHeight * visibleCount;
+  const paddingItems = Math.floor(visibleCount / 2);
 
+  // 初始化滚动位置
   useEffect(() => {
-    if (selectedValue !== undefined) {
+    if (selectedValue !== undefined && containerRef.current) {
       const selectedIndex = items.findIndex(item => item.value === selectedValue);
       if (selectedIndex >= 0) {
-        const centerPosition = selectedIndex * itemHeight - (totalHeight / 2) + (itemHeight / 2);
-        setScrollTop(Math.max(0, centerPosition));
-        if (containerRef.current) {
-          containerRef.current.scrollTop = Math.max(0, centerPosition);
-        }
+        // 让选中项居中，考虑padding
+        const targetScrollTop = selectedIndex * itemHeight;
+        containerRef.current.scrollTop = targetScrollTop;
+        setScrollTop(targetScrollTop);
       }
     }
-  }, [selectedValue, items, itemHeight, totalHeight]);
+  }, [selectedValue, items]);
 
+  // 极简的滚动处理
   const handleScroll = (e) => {
-    const scrollTop = e.target.scrollTop;
-    setScrollTop(scrollTop);
+    const currentScrollTop = e.target.scrollTop;
+    setScrollTop(currentScrollTop);
 
-    // 计算当前选中的项目
-    const centerPosition = scrollTop + totalHeight / 2;
-    const selectedIndex = Math.round(centerPosition / itemHeight);
+    // 简单计算：哪个项目最接近中心
+    const selectedIndex = Math.round(currentScrollTop / itemHeight);
     const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
 
+    // 更新选中值
     if (items[clampedIndex] && items[clampedIndex].value !== selectedValue) {
       onSelect(items[clampedIndex].value);
     }
   };
-
-  const paddingItems = Math.floor(visibleCount / 2);
 
   return (
     <div className={`relative ${className}`}>
@@ -57,17 +57,19 @@ function ScrollPicker({ items, selectedValue, onSelect, className = '' }) {
 
         {/* 实际选项 */}
         {items.map((item, index) => {
+          // 简化视觉效果计算
           const itemTop = (paddingItems + index) * itemHeight;
           const itemCenter = itemTop + itemHeight / 2;
-          const distance = Math.abs(itemCenter - (scrollTop + totalHeight / 2));
+          const viewportCenter = scrollTop + totalHeight / 2;
+          const distance = Math.abs(itemCenter - viewportCenter);
           const isSelected = distance < itemHeight / 2;
-          const opacity = Math.max(0.3, 1 - distance / (itemHeight * 2));
-          const scale = isSelected ? 1 : Math.max(0.85, 1 - distance / (itemHeight * 3));
+          const opacity = Math.max(0.4, 1 - distance / (itemHeight * 1.5));
+          const scale = isSelected ? 1 : Math.max(0.9, 1 - distance / (itemHeight * 4));
 
           return (
             <div
               key={item.value}
-              className={`flex items-center justify-center text-center transition-all duration-150 ${
+              className={`flex items-center justify-center text-center transition-all duration-200 ${
                 isSelected ? 'font-semibold text-gray-900' : 'text-gray-500'
               }`}
               style={{
