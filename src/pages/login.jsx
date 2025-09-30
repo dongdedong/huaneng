@@ -20,7 +20,6 @@ const LoginPage = props => {
 
   // 用于跟踪组件是否已卸载
   const isMountedRef = useRef(true);
-
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
@@ -101,7 +100,6 @@ const LoginPage = props => {
 
     // 检查组件是否仍然挂载
     if (!isMountedRef.current) return;
-
     if (!formData.username || !formData.password) {
       toast({
         title: "请填写完整信息",
@@ -110,14 +108,12 @@ const LoginPage = props => {
       });
       return;
     }
-
     if (!isMountedRef.current) return;
     setIsLoading(true);
     try {
       // 从数据库验证用户
       const validation = await validateUser(formData.username, formData.password);
       if (!isMountedRef.current) return;
-
       if (validation.success) {
         // 登录成功，保存用户信息到localStorage
         localStorage.setItem('isLoggedIn', 'true');
@@ -128,7 +124,6 @@ const LoginPage = props => {
           department: validation.user.department,
           loginTime: new Date().toISOString()
         }));
-
         if (isMountedRef.current) {
           toast({
             title: "登录成功",
@@ -136,10 +131,13 @@ const LoginPage = props => {
           });
         }
 
-        // 延迟跳转，让用户看到成功提示
+        // 使用平台提供的路由方法进行页面跳转
         setTimeout(() => {
-          if (isMountedRef.current) {
-            window.location.href = '/project-report';
+          if (isMountedRef.current && $w && $w.utils) {
+            $w.utils.redirectTo({
+              pageId: 'project-report',
+              params: {}
+            });
           }
         }, 1000);
       } else {

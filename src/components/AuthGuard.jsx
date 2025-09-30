@@ -8,7 +8,6 @@ const AuthGuard = ({
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const isMountedRef = useRef(true);
-
   useEffect(() => {
     // 检查用户是否已登录
     const checkAuth = () => {
@@ -39,7 +38,6 @@ const AuthGuard = ({
         }
       }
     };
-
     checkAuth();
 
     // 清理函数
