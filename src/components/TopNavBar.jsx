@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
-import { User, LogOut, Users, FileText, Settings } from 'lucide-react';
+import { User, LogOut, Users, FileText, Settings, BarChart3 } from 'lucide-react';
 
 const TopNavBar = props => {
   const {
@@ -84,9 +84,27 @@ const TopNavBar = props => {
           )}
         </div>
 
-        {/* 中间：Admin导航菜单 */}
-        {currentUser.role === 'admin' && (
-          <div className="flex items-center gap-2">
+        {/* 中间：导航菜单 */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateToPage('project-data-dashboard')}
+            className="flex items-center gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50"
+          >
+            <BarChart3 className="h-4 w-4" />
+            <span className="hidden sm:inline">数据展示</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigateToPage('project-report')}
+            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+          >
+            <FileText className="h-4 w-4" />
+            <span className="hidden sm:inline">项目填报</span>
+          </Button>
+          {currentUser.role === 'admin' && (
             <Button
               variant="ghost"
               size="sm"
@@ -96,17 +114,8 @@ const TopNavBar = props => {
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">用户管理</span>
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateToPage('project-report')}
-              className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">项目填报</span>
-            </Button>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* 右侧：用户信息和退出按钮 */}
         <div className="flex items-center gap-3">

@@ -120,8 +120,8 @@ const LoginPage = props => {
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
-          // 根据用户角色跳转到不同页面
-          const targetPage = validation.user.role === 'admin' ? 'admin-users' : 'project-report';
+          // 所有用户登录后都进入项目数据展示页面
+          const targetPage = 'project-data-dashboard';
 
           // 使用微搭平台的路由跳转API，确保路由正确
           if ($w && $w.utils && $w.utils.navigateTo) {
