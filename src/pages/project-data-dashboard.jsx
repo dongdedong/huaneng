@@ -62,7 +62,7 @@ export default function ProjectDataDashboard(props) {
     try {
       // 查询所有项目数据
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'projectReports',
+        dataSourceName: 'project_report',
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {},
@@ -152,7 +152,7 @@ export default function ProjectDataDashboard(props) {
         if (dataType === 'count') {
           // 查询每个项目开发部的项目数量
           const result = await $w.cloud.callDataSource({
-            dataSourceName: 'projectReports',
+            dataSourceName: 'project_report',
             methodName: 'wedaGetRecordsV2',
             params: {
               filter: {
@@ -187,7 +187,7 @@ export default function ProjectDataDashboard(props) {
         } else {
           // 查询每个项目开发部的项目容量总和
           const result = await $w.cloud.callDataSource({
-            dataSourceName: 'projectReports',
+            dataSourceName: 'project_report',
             methodName: 'wedaGetRecordsV2',
             params: {
               filter: {
@@ -226,7 +226,7 @@ export default function ProjectDataDashboard(props) {
         if (dataType === 'count') {
           // 查询每个城市的项目数量
           const result = await $w.cloud.callDataSource({
-            dataSourceName: 'projectReports',
+            dataSourceName: 'project_report',
             methodName: 'wedaGetRecordsV2',
             params: {
               filter: {
@@ -261,7 +261,7 @@ export default function ProjectDataDashboard(props) {
         } else {
           // 查询每个城市的项目容量总和
           const result = await $w.cloud.callDataSource({
-            dataSourceName: 'projectReports',
+            dataSourceName: 'project_report',
             methodName: 'wedaGetRecordsV2',
             params: {
               filter: {
@@ -725,7 +725,7 @@ export default function ProjectDataDashboard(props) {
 
       // 保存到数据库
       await $w.cloud.callDataSource({
-        dataSourceName: 'projectReports',
+        dataSourceName: 'project_report',
         methodName: 'wedaCreateV2',
         params: {
           data: {
