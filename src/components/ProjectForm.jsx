@@ -1,12 +1,10 @@
 // @ts-ignore;
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 // @ts-ignore;
 import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 // @ts-ignore;
 import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone } from 'lucide-react';
 
-// @ts-ignore;
-import { MobileDepartmentSelect } from '@/components/MobileDepartmentSelect';
 
 export function ProjectForm({
   formData,
@@ -18,8 +16,22 @@ export function ProjectForm({
   showLocationPicker,
   setShowLocationPicker
 }) {
+  const [currentUser, setCurrentUser] = useState(null);
   const departments = ['规划部', '豫北项目开发部', '灵宝项目开发部', '南阳项目开发部', '省直项目开发部', '郑州项目开发部', '开封项目开发部', '许昌项目开发部', '漯河项目开发部', '商丘项目开发部', '周口项目开发部'];
   const projectTypes = ['分布式光伏', '集中式光伏', '分散式风电', '集中式风电', '源网荷储项目', '千乡万村御风行动'];
+
+  useEffect(() => {
+    // 获取当前登录用户信息
+    try {
+      const userData = localStorage.getItem('currentUser');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setCurrentUser(user);
+      }
+    } catch (error) {
+      console.error('Failed to load user data:', error);
+    }
+  }, []);
 
   const formatDate = date => {
     if (!date) return '';
@@ -93,13 +105,15 @@ export function ProjectForm({
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
               <Building2 className="h-5 w-5 text-green-600" />
-              项目开发部 <span className="text-red-500">*</span>
+              项目开发部
             </Label>
-            <MobileDepartmentSelect
-              value={formData.projectDepartment}
-              onChange={value => onInputChange('projectDepartment', value)}
-              departments={departments}
-            />
+            <div className="w-full h-14 flex items-center px-4 rounded-2xl border-2 border-gray-200 bg-gray-50/30">
+              <Building2 className="h-5 w-5 text-gray-400 mr-3" />
+              <span className="text-gray-900 font-medium">
+                {currentUser?.department || '加载中...'}
+              </span>
+              <span className="ml-2 text-sm text-gray-500">(当前用户部门)</span>
+            </div>
           </div>
 
           {/* 项目类型 */}

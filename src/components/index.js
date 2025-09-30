@@ -5,3 +5,5 @@ export * from './DuplicateConfirmDialog.jsx';
 export * from './ChinaLocationPicker.jsx';
 export * from './MobileDatePicker.jsx';
 export * from './MobileDepartmentSelect.jsx';
+export * from './AuthGuard.jsx';
+export * from './TopNavBar.jsx';

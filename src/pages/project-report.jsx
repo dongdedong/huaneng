@@ -11,6 +11,8 @@ import { ProjectForm } from '@/components/ProjectForm';
 import { ChinaLocationPicker } from '@/components/ChinaLocationPicker';
 // @ts-ignore;
 import { DuplicateConfirmDialog } from '@/components/DuplicateConfirmDialog';
+// @ts-ignore;
+import TopNavBar from '@/components/TopNavBar';
 
 // 日期格式化工具函数（原生实现）
 const formatDateISO = date => {
@@ -45,7 +47,6 @@ export default function ProjectReport(props) {
       county: '',
       full_address: ''
     },
-    projectDepartment: '',
     projectType: '',
     partnerUnit: '',
     reporterName: '',
@@ -131,7 +132,6 @@ export default function ProjectReport(props) {
         county: '',
         full_address: ''
       },
-      projectDepartment: '',
       projectType: '',
       partnerUnit: '',
       reporterName: '',
@@ -145,6 +145,11 @@ export default function ProjectReport(props) {
     try {
       const currentOpenid = getCurrentUserOpenid();
       console.log('提交时的_openid:', currentOpenid);
+
+      // 获取当前用户信息
+      const userData = localStorage.getItem('currentUser');
+      const currentUser = userData ? JSON.parse(userData) : null;
+
       const recordData = {
         project_date: formatDateISO(new Date()),
         project_location: {
@@ -153,7 +158,7 @@ export default function ProjectReport(props) {
           county: formData.projectLocation.county,
           full_address: formData.projectLocation.full_address
         },
-        project_department: formData.projectDepartment,
+        project_department: currentUser?.department || formData.projectDepartment,
         project_type: formData.projectType,
         partner_unit: formData.partnerUnit || '',
         reporter_name: formData.reporterName,
@@ -244,10 +249,13 @@ export default function ProjectReport(props) {
       </div>;
   }
   return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
+      {/* 顶部导航栏 */}
+      <TopNavBar />
+
       {/* 顶部装饰 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
 
-      <div className="relative z-10 pb-8">
+      <div className="relative z-10 pb-8 pt-4">
         <div className="max-w-lg mx-auto px-4">
           {/* 页面头部 */}
           <div className="pt-8 pb-6 text-center">
@@ -256,6 +264,21 @@ export default function ProjectReport(props) {
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">新能源项目管理</h1>
             <p className="text-gray-600">项目信息填报与管理系统</p>
+
+            {/* 开发工具链接 */}
+            <div className="mt-4">
+              <a
+                href="#create-users-data"
+                className="text-sm text-blue-600 underline"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.hash = 'create-users-data';
+                  window.location.reload();
+                }}
+              >
+                🔧 创建用户数据源（开发工具）
+              </a>
+            </div>
           </div>
 
           {/* 填报表单 */}
