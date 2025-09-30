@@ -3,12 +3,13 @@ import React from 'react';
 // @ts-ignore;
 import { Button } from '@/components/ui';
 // @ts-ignore;
-import { Eye, Edit3, Calendar, MapPin, Building2, Lightbulb, User } from 'lucide-react';
+import { Eye, Edit3, Trash2, Calendar, MapPin, Building2, Lightbulb, User } from 'lucide-react';
 
 export function RecordCard({
   record,
   onView,
   onEdit,
+  onDelete,
   isMine = false
 }) {
   const formatDate = (dateStr) => {
@@ -58,6 +59,7 @@ export function RecordCard({
                 size="sm"
                 onClick={() => onView(record)}
                 className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-600 rounded-lg"
+                title="查看详情"
               >
                 <Eye className="h-4 w-4" />
               </Button>
@@ -66,9 +68,21 @@ export function RecordCard({
                 size="sm"
                 onClick={() => onEdit(record)}
                 className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-600 rounded-lg"
+                title="编辑记录"
               >
                 <Edit3 className="h-4 w-4" />
               </Button>
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onDelete(record)}
+                  className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 rounded-lg"
+                  title="删除记录"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           )}
         </div>

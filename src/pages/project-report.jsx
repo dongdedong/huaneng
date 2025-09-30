@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger, useToast } from '@/components/ui';
 // @ts-ignore;
-import { Users, FileText, Clock, Loader2 } from 'lucide-react';
+import { FileText, Clock, Loader2 } from 'lucide-react';
 
 // @ts-ignore;
 import { ProjectForm } from '@/components/ProjectForm';
@@ -59,12 +59,11 @@ export default function ProjectReport(props) {
   const [submitting, setSubmitting] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
-  const [records, setRecords] = useState([]);
   const [myRecords, setMyRecords] = useState([]);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [filterDate, setFilterDate] = useState(null);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateRecords, setDuplicateRecords] = useState([]);
+  const [activeTab, setActiveTab] = useState('form');
 
   // 获取当前用户的_openid
   const getCurrentUserOpenid = async () => {
@@ -165,23 +164,7 @@ export default function ProjectReport(props) {
   const loadData = async () => {
     setLoading(true);
     try {
-      // 加载全部记录
-      const allRecords = await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
-        methodName: 'wedaGetRecordsV2',
-        params: {
-          select: {
-            $master: true
-          },
-          orderBy: [{
-            createdAt: 'desc'
-          }],
-          getCount: true
-        }
-      });
-      setRecords(allRecords.records || []);
-
-      // 加载当前用户的记录
+      // 只加载当前用户的记录
       await loadMyRecords();
     } catch (error) {
       console.error('加载数据失败:', error);
@@ -245,6 +228,10 @@ export default function ProjectReport(props) {
       reporterPhone: ''
     });
     setEditingId(null);
+    // 如果正在编辑，切换回我的填报标签页
+    if (editingId) {
+      setActiveTab('mine');
+    }
   };
 
   // 实际提交数据
@@ -393,11 +380,53 @@ export default function ProjectReport(props) {
       reporterPhone: record.reporter_phone
     });
     setEditingId(record._id);
+    // 自动切换到填报标签页
+    setActiveTab('form');
   };
   const handleViewRecord = record => {
     setSelectedRecord(record);
   };
-  const filteredRecords = filterDate ? records.filter(r => r.project_date === formatDateISO(filterDate)) : records;
+
+  // 删除记录
+  const handleDeleteRecord = async (record) => {
+    if (!confirm(`确定要删除这条记录吗？\n项目地址：${record.project_location?.full_address || '未知'}\n提交时间：${new Date(record.createdAt).toLocaleString()}`)) {
+      return;
+    }
+
+    try {
+      const deleteResult = await $w.cloud.callDataSource({
+        dataSourceName: 'project_report',
+        methodName: 'wedaDeleteV2',
+        params: {
+          filter: {
+            where: {
+              _id: {
+                $eq: record._id
+              }
+            }
+          }
+        }
+      });
+
+      if (deleteResult.count > 0) {
+        toast({
+          title: "删除成功",
+          description: "记录已删除"
+        });
+        // 重新加载我的记录
+        await loadMyRecords();
+      } else {
+        throw new Error('删除失败：未找到记录');
+      }
+    } catch (error) {
+      console.error('删除记录失败:', error);
+      toast({
+        title: "删除失败",
+        description: error.message || "请稍后重试",
+        variant: "destructive"
+      });
+    }
+  };
 
   // 手动刷新我的记录
   const handleRefreshMyRecords = async () => {
@@ -436,10 +465,10 @@ export default function ProjectReport(props) {
             <p className="text-gray-600">项目信息填报与管理系统</p>
           </div>
 
-          <Tabs defaultValue="form" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             {/* 标签页导航 */}
             <div className="mb-6">
-              <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1 shadow-lg border border-white/20">
+              <TabsList className="grid w-full grid-cols-2 bg-white/80 backdrop-blur-sm rounded-2xl p-1 shadow-lg border border-white/20">
                 <TabsTrigger
                   value="form"
                   className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
@@ -450,21 +479,12 @@ export default function ProjectReport(props) {
                   </div>
                 </TabsTrigger>
                 <TabsTrigger
-                  value="all"
-                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
-                >
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    <span>全部</span>
-                  </div>
-                </TabsTrigger>
-                <TabsTrigger
                   value="mine"
                   className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
-                    <span>我的</span>
+                    <span>我的填报</span>
                   </div>
                 </TabsTrigger>
               </TabsList>
@@ -487,43 +507,6 @@ export default function ProjectReport(props) {
               />
             </TabsContent>
 
-            {/* 全部记录页面 */}
-            <TabsContent value="all" className="mt-0">
-              <Card className="border-0 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm mx-4 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-1"></div>
-                <CardHeader className="pb-4">
-                  <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
-                    <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-                      <Users className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div>全部记录</div>
-                      <div className="text-sm font-normal text-gray-600">共 {filteredRecords.length} 条记录</div>
-                    </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {filteredRecords.length === 0 ? (
-                      <div className="text-center py-12">
-                        <div className="text-6xl mb-4">📋</div>
-                        <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
-                        <p className="text-sm text-gray-400">还没有人提交项目信息</p>
-                      </div>
-                    ) : (
-                      filteredRecords.map(record => (
-                        <RecordCard
-                          key={record._id}
-                          record={record}
-                          onView={handleViewRecord}
-                          onEdit={handleEdit}
-                        />
-                      ))
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
 
             {/* 我的记录页面 */}
             <TabsContent value="mine" className="mt-0">
@@ -535,7 +518,7 @@ export default function ProjectReport(props) {
                       <Clock className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <div>我的记录</div>
+                      <div>我的填报</div>
                       <div className="text-sm font-normal text-gray-600">共 {myRecords.length} 条记录</div>
                     </div>
                   </CardTitle>
@@ -552,7 +535,8 @@ export default function ProjectReport(props) {
                         <div className="space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
                           <p>💡 提示：</p>
                           <p>• 提交后的记录会显示在这里</p>
-                          <p>• 您可以随时查看和编辑自己的记录</p>
+                          <p>• 您可以随时查看、编辑和删除自己的记录</p>
+                          <p>• 点击记录右上角的图标进行操作</p>
                         </div>
                       </div>
                     ) : (
@@ -562,6 +546,7 @@ export default function ProjectReport(props) {
                           record={record}
                           onView={handleViewRecord}
                           onEdit={handleEdit}
+                          onDelete={handleDeleteRecord}
                           isMine={true}
                         />
                       ))
