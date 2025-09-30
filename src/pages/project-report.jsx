@@ -439,10 +439,10 @@ export default function ProjectReport(props) {
           <Tabs defaultValue="form" className="w-full">
             {/* 标签页导航 */}
             <div className="mb-6">
-              <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1.5 shadow-lg border border-white/20">
+              <TabsList className="grid w-full grid-cols-3 bg-white/80 backdrop-blur-sm rounded-2xl p-1 shadow-lg border border-white/20">
                 <TabsTrigger
                   value="form"
-                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-green-600 data-[state=active]:to-green-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
                 >
                   <div className="flex items-center gap-2">
                     <span>{editingId ? '✏️' : '📝'}</span>
@@ -451,7 +451,7 @@ export default function ProjectReport(props) {
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-blue-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
                 >
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
@@ -460,7 +460,7 @@ export default function ProjectReport(props) {
                 </TabsTrigger>
                 <TabsTrigger
                   value="mine"
-                  className="rounded-xl py-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md"
+                  className="rounded-xl py-2.5 px-3 text-sm font-medium transition-all duration-200 data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-purple-700 data-[state=active]:text-white data-[state=active]:shadow-md text-gray-600 hover:text-gray-800 flex items-center justify-center min-h-[44px]"
                 >
                   <div className="flex items-center gap-2">
                     <Clock className="h-4 w-4" />
