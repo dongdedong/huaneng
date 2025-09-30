@@ -75,7 +75,6 @@ export default function AdminUsers(props) {
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {},
-          orderBy: [{ field: 'createdAt', direction: 'desc' }],
           pageSize: 100
         }
       });
