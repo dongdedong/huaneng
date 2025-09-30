@@ -144,10 +144,15 @@ export default function ProjectDataDashboard(props) {
 
   // 查询项目统计数据
   const queryProjectStatistics = async (startDate, endDate, filterType, dataType) => {
+    console.log('=== 开始查询统计数据 ===');
+    console.log('查询参数:', { startDate, endDate, filterType, dataType });
+
     try {
       if (filterType === 'department') {
         // 按项目开发部分组查询
         if (dataType === 'count') {
+          console.log('查询类型: 按部门统计项目数量');
+
           // 查询每个项目开发部的项目数量
           const result = await $w.cloud.callDataSource({
             dataSourceName: 'project_report',
@@ -165,23 +170,54 @@ export default function ProjectDataDashboard(props) {
             }
           });
 
-          // 前端分组统计
-          const departmentCounts = {};
-          departments.forEach(dept => departmentCounts[dept] = 0);
+          console.log('数据库查询结果:', result);
+          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
 
-          if (result.records) {
-            result.records.forEach(record => {
-              if (record.department && departmentCounts.hasOwnProperty(record.department)) {
-                departmentCounts[record.department]++;
+          if (result.records && result.records.length > 0) {
+            console.log('前3条记录样本:', result.records.slice(0, 3));
+
+            // 检查每条记录的字段
+            result.records.forEach((record, index) => {
+              if (index < 5) { // 只打印前5条记录的详细信息
+                console.log(`记录${index + 1}:`, {
+                  department: record.department,
+                  projectName: record.projectName,
+                  contactDate: record.contactDate,
+                  city: record.city,
+                  projectCapacity: record.projectCapacity
+                });
               }
             });
           }
 
+          // 前端分组统计
+          const departmentCounts = {};
+          departments.forEach(dept => departmentCounts[dept] = 0);
+          console.log('初始化部门计数:', departmentCounts);
+
+          if (result.records) {
+            result.records.forEach(record => {
+              console.log('处理记录 - department:', record.department, '是否匹配:', departmentCounts.hasOwnProperty(record.department));
+              if (record.department && departmentCounts.hasOwnProperty(record.department)) {
+                departmentCounts[record.department]++;
+                console.log(`${record.department} 计数加1, 当前值:`, departmentCounts[record.department]);
+              } else {
+                console.log('未匹配的部门:', record.department);
+              }
+            });
+          }
+
+          console.log('最终部门统计结果:', departmentCounts);
+          const finalValues = departments.map(dept => departmentCounts[dept] || 0);
+          console.log('返回的数值数组:', finalValues);
+
           return {
             categories: departments,
-            values: departments.map(dept => departmentCounts[dept] || 0)
+            values: finalValues
           };
         } else {
+          console.log('查询类型: 按部门统计项目容量');
+
           // 查询每个项目开发部的项目容量总和
           const result = await $w.cloud.callDataSource({
             dataSourceName: 'project_report',
@@ -199,27 +235,41 @@ export default function ProjectDataDashboard(props) {
             }
           });
 
+          console.log('数据库查询结果:', result);
+          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
+
           // 前端分组统计容量
           const departmentCapacity = {};
           departments.forEach(dept => departmentCapacity[dept] = 0);
+          console.log('初始化部门容量统计:', departmentCapacity);
 
           if (result.records) {
             result.records.forEach(record => {
+              console.log('处理记录 - department:', record.department, 'projectCapacity:', record.projectCapacity);
               if (record.department && departmentCapacity.hasOwnProperty(record.department)) {
                 const capacity = parseFloat(record.projectCapacity) || 0;
                 departmentCapacity[record.department] += capacity;
+                console.log(`${record.department} 容量累加: +${capacity}, 当前总容量:`, departmentCapacity[record.department]);
+              } else {
+                console.log('未匹配的部门或无容量数据:', record.department);
               }
             });
           }
 
+          console.log('最终部门容量统计结果:', departmentCapacity);
+          const finalValues = departments.map(dept => Math.round((departmentCapacity[dept] || 0) * 100) / 100);
+          console.log('返回的容量数组:', finalValues);
+
           return {
             categories: departments,
-            values: departments.map(dept => Math.round((departmentCapacity[dept] || 0) * 100) / 100)
+            values: finalValues
           };
         }
       } else {
         // 按项目区域(city)分组查询
         if (dataType === 'count') {
+          console.log('查询类型: 按城市统计项目数量');
+
           // 查询每个城市的项目数量
           const result = await $w.cloud.callDataSource({
             dataSourceName: 'project_report',
@@ -237,23 +287,41 @@ export default function ProjectDataDashboard(props) {
             }
           });
 
+          console.log('数据库查询结果:', result);
+          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
+
+          if (result.records && result.records.length > 0) {
+            console.log('前3条记录样本:', result.records.slice(0, 3));
+          }
+
           // 前端分组统计
           const cityCounts = {};
           regions.forEach(city => cityCounts[city] = 0);
+          console.log('初始化城市计数:', cityCounts);
 
           if (result.records) {
             result.records.forEach(record => {
+              console.log('处理记录 - city:', record.city, '是否匹配:', cityCounts.hasOwnProperty(record.city));
               if (record.city && cityCounts.hasOwnProperty(record.city)) {
                 cityCounts[record.city]++;
+                console.log(`${record.city} 计数加1, 当前值:`, cityCounts[record.city]);
+              } else {
+                console.log('未匹配的城市:', record.city);
               }
             });
           }
 
+          console.log('最终城市统计结果:', cityCounts);
+          const finalValues = regions.map(city => cityCounts[city] || 0);
+          console.log('返回的数值数组:', finalValues);
+
           return {
             categories: regions,
-            values: regions.map(city => cityCounts[city] || 0)
+            values: finalValues
           };
         } else {
+          console.log('查询类型: 按城市统计项目容量');
+
           // 查询每个城市的项目容量总和
           const result = await $w.cloud.callDataSource({
             dataSourceName: 'project_report',
@@ -271,33 +339,51 @@ export default function ProjectDataDashboard(props) {
             }
           });
 
+          console.log('数据库查询结果:', result);
+          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
+
           // 前端分组统计容量
           const cityCapacity = {};
           regions.forEach(city => cityCapacity[city] = 0);
+          console.log('初始化城市容量统计:', cityCapacity);
 
           if (result.records) {
             result.records.forEach(record => {
+              console.log('处理记录 - city:', record.city, 'projectCapacity:', record.projectCapacity);
               if (record.city && cityCapacity.hasOwnProperty(record.city)) {
                 const capacity = parseFloat(record.projectCapacity) || 0;
                 cityCapacity[record.city] += capacity;
+                console.log(`${record.city} 容量累加: +${capacity}, 当前总容量:`, cityCapacity[record.city]);
+              } else {
+                console.log('未匹配的城市或无容量数据:', record.city);
               }
             });
           }
 
+          console.log('最终城市容量统计结果:', cityCapacity);
+          const finalValues = regions.map(city => Math.round((cityCapacity[city] || 0) * 100) / 100);
+          console.log('返回的容量数组:', finalValues);
+
           return {
             categories: regions,
-            values: regions.map(city => Math.round((cityCapacity[city] || 0) * 100) / 100)
+            values: finalValues
           };
         }
       }
     } catch (error) {
-      console.error('查询统计数据失败:', error);
+      console.error('=== 查询统计数据失败 ===');
+      console.error('错误详情:', error);
+      console.error('错误消息:', error.message);
+      console.error('错误堆栈:', error.stack);
       throw error;
     }
   };
 
   // 提交统计查询
   const handleStatisticsSubmit = async () => {
+    console.log('=== 开始提交统计查询 ===');
+    console.log('当前表单数据:', statisticsForm);
+
     setLoading(true);
     try {
       // 查询真实数据
@@ -307,6 +393,10 @@ export default function ProjectDataDashboard(props) {
         statisticsForm.filterType,
         statisticsForm.dataType
       );
+
+      console.log('查询结果 - categories:', categories);
+      console.log('查询结果 - values:', values);
+      console.log('总数据量:', values.reduce((sum, val) => sum + val, 0));
 
       setChartData({
         categories,
@@ -323,7 +413,8 @@ export default function ProjectDataDashboard(props) {
         duration: 1000
       });
     } catch (error) {
-      console.error('统计查询失败:', error);
+      console.error('=== 统计查询失败 ===');
+      console.error('失败详情:', error);
       toast({
         title: "查询失败",
         description: error.message || "请稍后重试",
