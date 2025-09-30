@@ -6,8 +6,6 @@ import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, Ca
 import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone } from 'lucide-react';
 
 // @ts-ignore;
-import { MobileDatePicker } from '@/components/MobileDatePicker';
-// @ts-ignore;
 import { MobileDepartmentSelect } from '@/components/MobileDepartmentSelect';
 
 export function ProjectForm({
@@ -16,10 +14,7 @@ export function ProjectForm({
   onLocationSelect,
   onSubmit,
   onReset,
-  editingId,
   submitting,
-  showDatePicker,
-  setShowDatePicker,
   showLocationPicker,
   setShowLocationPicker
 }) {
@@ -40,7 +35,7 @@ export function ProjectForm({
       {/* 页面标题 */}
       <div className="text-center py-4">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
-          {editingId ? '✏️ 编辑项目信息' : '📝 项目信息填报'}
+          📝 项目信息填报
         </h1>
         <p className="text-gray-600 text-sm">
           请准确填写项目相关信息，带 * 的为必填项
@@ -56,24 +51,15 @@ export function ProjectForm({
           <div className="space-y-3">
             <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
               <Calendar className="h-5 w-5 text-green-600" />
-              项目对接日期 <span className="text-red-500">*</span>
+              项目对接日期
             </Label>
-            <Button
-              variant="outline"
-              onClick={() => setShowDatePicker(true)}
-              className="w-full h-14 justify-start text-left font-normal rounded-2xl border-2 border-gray-200 bg-gray-50/50 hover:bg-gray-50 hover:border-green-300 transition-all duration-200"
-            >
+            <div className="w-full h-14 flex items-center px-4 rounded-2xl border-2 border-gray-200 bg-gray-50/30">
               <Calendar className="h-5 w-5 text-gray-400 mr-3" />
-              <span className={formData.projectDate ? 'text-gray-900' : 'text-gray-500'}>
-                {formData.projectDate ? formatDate(formData.projectDate) : "请选择项目对接日期"}
+              <span className="text-gray-900 font-medium">
+                {formatDate(new Date())}
               </span>
-            </Button>
-            <MobileDatePicker
-              open={showDatePicker}
-              onOpenChange={setShowDatePicker}
-              selectedDate={formData.projectDate}
-              onSelect={date => onInputChange('projectDate', date)}
-            />
+              <span className="ml-2 text-sm text-gray-500">(今日)</span>
+            </div>
           </div>
 
           {/* 项目所在地 */}
@@ -230,18 +216,9 @@ export function ProjectForm({
                   处理中...
                 </div>
               ) : (
-                editingId ? '✏️ 更新信息' : '📤 提交信息'
+                '📤 提交信息'
               )}
             </Button>
-            {editingId && (
-              <Button
-                variant="outline"
-                onClick={onReset}
-                className="h-14 px-6 rounded-2xl border-2 border-gray-300 text-gray-700 hover:bg-gray-50 font-medium transition-all duration-200"
-              >
-                取消
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
@@ -255,7 +232,7 @@ export function ProjectForm({
             <ul className="text-sm text-blue-700 space-y-1">
               <li>• 请确保填写的信息真实准确</li>
               <li>• 手机号将用于后续项目沟通联系</li>
-              <li>• 提交后可在"我的"页面查看和编辑</li>
+              <li>• 提交后系统将保存项目信息</li>
             </ul>
           </div>
         </div>
