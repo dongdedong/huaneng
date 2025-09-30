@@ -1,5 +1,5 @@
 // @ts-ignore;
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
 // @ts-ignore;
@@ -58,6 +58,18 @@ export default function ProjectReport(props) {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateRecords, setDuplicateRecords] = useState([]);
 
+  // 使用ref来跟踪组件是否已挂载
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    // 组件挂载时设置ref为true
+    isMountedRef.current = true;
+
+    // 清理函数：组件卸载时设置ref为false
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   // 获取当前用户的_openid - 直接使用auth信息
   const getCurrentUserOpenid = () => {
     try {
@@ -69,7 +81,7 @@ export default function ProjectReport(props) {
     }
   };
 
-  // 检查重复数据
+  // 检查重复数据 - 添加组件挂载检查
   const checkDuplicateRecords = async formData => {
     try {
       const result = await $w.cloud.callDataSource({
@@ -99,14 +111,24 @@ export default function ProjectReport(props) {
           getCount: true
         }
       });
+
+      // 检查组件是否仍然挂载
+      if (!isMountedRef.current) {
+        console.log('组件已卸载，取消状态更新');
+        return [];
+      }
       return result.records || [];
     } catch (error) {
       console.error('检查重复数据失败:', error);
+
+      // 检查组件是否仍然挂载
+      if (!isMountedRef.current) {
+        console.log('组件已卸载，取消错误状态更新');
+        return [];
+      }
       return [];
     }
   };
-
-
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -139,7 +161,7 @@ export default function ProjectReport(props) {
     });
   };
 
-  // 实际提交数据
+  // 实际提交数据 - 添加组件挂载检查
   const submitData = async () => {
     setSubmitting(true);
     try {
@@ -149,7 +171,6 @@ export default function ProjectReport(props) {
       // 获取当前用户信息
       const userData = localStorage.getItem('currentUser');
       const currentUser = userData ? JSON.parse(userData) : null;
-
       const recordData = {
         project_date: formatDateISO(new Date()),
         project_location: {
@@ -175,6 +196,12 @@ export default function ProjectReport(props) {
           data: recordData
         }
       });
+
+      // 检查组件是否仍然挂载
+      if (!isMountedRef.current) {
+        console.log('组件已卸载，取消提交成功状态更新');
+        return;
+      }
       if (createResult.id) {
         toast({
           title: "提交成功",
@@ -186,13 +213,22 @@ export default function ProjectReport(props) {
       resetForm();
     } catch (error) {
       console.error('提交失败:', error);
+
+      // 检查组件是否仍然挂载
+      if (!isMountedRef.current) {
+        console.log('组件已卸载，取消提交失败状态更新');
+        return;
+      }
       toast({
         title: "提交失败",
         description: error.message || "请稍后重试",
         variant: "destructive"
       });
     } finally {
-      setSubmitting(false);
+      // 检查组件是否仍然挂载
+      if (isMountedRef.current) {
+        setSubmitting(false);
+      }
     }
   };
   const handleSubmit = async () => {
@@ -217,9 +253,14 @@ export default function ProjectReport(props) {
       return;
     }
 
-
     // 检查重复数据
     const duplicates = await checkDuplicateRecords(formData);
+
+    // 检查组件是否仍然挂载
+    if (!isMountedRef.current) {
+      console.log('组件已卸载，取消重复检查状态更新');
+      return;
+    }
     if (duplicates.length > 0) {
       setDuplicateRecords(duplicates);
       setShowDuplicateDialog(true);
@@ -267,31 +308,18 @@ export default function ProjectReport(props) {
 
             {/* 开发工具链接 */}
             <div className="mt-4">
-              <a
-                href="#create-users-data"
-                className="text-sm text-blue-600 underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.hash = 'create-users-data';
-                  window.location.reload();
-                }}
-              >
+              <a href="#create-users-data" className="text-sm text-blue-600 underline" onClick={e => {
+              e.preventDefault();
+              window.location.hash = 'create-users-data';
+              window.location.reload();
+            }}>
                 🔧 创建用户数据源（开发工具）
               </a>
             </div>
           </div>
 
           {/* 填报表单 */}
-          <ProjectForm
-            formData={formData}
-            onInputChange={handleInputChange}
-            onLocationSelect={handleLocationSelect}
-            onSubmit={handleSubmit}
-            onReset={resetForm}
-            submitting={submitting}
-            showLocationPicker={showLocationPicker}
-            setShowLocationPicker={setShowLocationPicker}
-          />
+          <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} submitting={submitting} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />
 
           {/* 地址选择器 */}
           {showLocationPicker && <ChinaLocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSelect={handleLocationSelect} />}
