@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
-import { User, LogOut, Users, FileText, Settings, BarChart3 } from 'lucide-react';
+import { User, LogOut, Users, FileText, Settings, BarChart3, Database } from 'lucide-react';
 
 const TopNavBar = props => {
   const {
@@ -105,15 +105,26 @@ const TopNavBar = props => {
             <span className="hidden sm:inline">项目填报</span>
           </Button>
           {currentUser.role === 'admin' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigateToPage('admin-users')}
-              className="flex items-center gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-            >
-              <Users className="h-4 w-4" />
-              <span className="hidden sm:inline">用户管理</span>
-            </Button>
+            <>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateToPage('admin-users')}
+                className="flex items-center gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+              >
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">用户管理</span>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigateToPage('mysql-test')}
+                className="flex items-center gap-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50"
+              >
+                <Database className="h-4 w-4" />
+                <span className="hidden sm:inline">MySQL测试</span>
+              </Button>
+            </>
           )}
         </div>
 
