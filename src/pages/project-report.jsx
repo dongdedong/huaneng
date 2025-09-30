@@ -48,6 +48,7 @@ export default function ProjectReport(props) {
       full_address: ''
     },
     projectType: '',
+    projectCapacity: '',
     partnerUnit: '',
     reporterName: '',
     reporterPhone: '',
@@ -216,6 +217,7 @@ export default function ProjectReport(props) {
         full_address: ''
       },
       projectType: '',
+      projectCapacity: '',
       partnerUnit: '',
       reporterName: '',
       reporterPhone: '',
@@ -264,6 +266,7 @@ export default function ProjectReport(props) {
         },
         project_department: currentUser?.department || formData.projectDepartment,
         project_type: formData.projectType,
+        project_capacity: parseFloat(formData.projectCapacity).toFixed(2),
         partner_unit: formData.partnerUnit,
         reporter_name: formData.reporterName,
         reporter_phone: formData.reporterPhone,
@@ -316,10 +319,21 @@ export default function ProjectReport(props) {
   };
   const handleSubmit = async () => {
     // 表单验证
-    if (!formData.projectDepartment || !formData.projectType || !formData.partnerUnit || !formData.reporterName || !formData.reporterPhone) {
+    if (!formData.projectDepartment || !formData.projectType || !formData.projectCapacity || !formData.partnerUnit || !formData.reporterName || !formData.reporterPhone) {
       toast({
         title: "表单不完整",
         description: "请填写所有必填项",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 项目容量验证
+    const capacityNum = parseFloat(formData.projectCapacity);
+    if (isNaN(capacityNum) || capacityNum <= 0) {
+      toast({
+        title: "项目容量格式错误",
+        description: "请输入有效的项目容量数值",
         variant: "destructive"
       });
       return;

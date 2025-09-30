@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 // @ts-ignore;
 import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 // @ts-ignore;
-import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone } from 'lucide-react';
+import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone, Zap } from 'lucide-react';
 
 
 export function ProjectForm({
@@ -155,6 +155,40 @@ export function ProjectForm({
                 </div>
               ))}
             </RadioGroup>
+          </div>
+
+          {/* 项目容量 */}
+          <div className="space-y-3">
+            <Label className="flex items-center gap-2 text-base font-semibold text-gray-800">
+              <Zap className="h-5 w-5 text-green-600" />
+              项目容量 <span className="text-red-500">*</span>
+            </Label>
+            <div className="relative">
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                value={formData.projectCapacity}
+                onChange={e => {
+                  const value = e.target.value;
+                  // 只允许输入数字和小数点，并限制小数点后两位
+                  if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                    onInputChange('projectCapacity', value);
+                  }
+                }}
+                placeholder="请输入项目容量"
+                className="h-14 pl-12 pr-16 rounded-2xl border-2 border-gray-200 bg-gray-50/50 focus:border-green-500 focus:bg-white transition-all duration-200"
+              />
+              <Zap className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 font-medium">MW</span>
+            </div>
+            {formData.projectCapacity && (
+              <div className="px-4 py-2 bg-blue-50 rounded-xl border border-blue-200">
+                <p className="text-sm text-blue-800">
+                  ⚡ 项目容量: {parseFloat(formData.projectCapacity || 0).toFixed(2)} MW
+                </p>
+              </div>
+            )}
           </div>
 
           {/* 项目合作单位 */}
