@@ -58,6 +58,7 @@ export default function ProjectReport(props) {
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateRecords, setDuplicateRecords] = useState([]);
+  const [projectId, setProjectId] = useState('');
 
   // 使用ref来跟踪组件是否已挂载
   const isMountedRef = useRef(true);
@@ -95,6 +96,49 @@ export default function ProjectReport(props) {
     } catch (error) {
       console.error('获取_openid失败:', error);
       return 'anonymous';
+    }
+  };
+
+  // 生成项目编号
+  const generateProjectId = async () => {
+    try {
+      const now = new Date();
+      const datePrefix = now.getFullYear().toString() +
+                        String(now.getMonth() + 1).padStart(2, '0') +
+                        String(now.getDate()).padStart(2, '0');
+      const yearPrefix = now.getFullYear().toString();
+
+      // 查询当前年度已有的项目编号数量
+      const result = await $w.cloud.callDataSource({
+        dataSourceName: 'project_report',
+        methodName: 'wedaGetRecordsV2',
+        params: {
+          filter: {
+            where: {
+              project_id: {
+                $regex: `^${yearPrefix}`
+              }
+            }
+          },
+          getCount: true,
+          pageSize: 1
+        }
+      });
+
+      // 计算下一个序号（按年度递增）
+      const count = result.total || 0;
+      const nextSequence = String(count + 1).padStart(3, '0');
+      const newProjectId = `${datePrefix}-${nextSequence}`;
+
+      return newProjectId;
+    } catch (error) {
+      console.error('生成项目编号失败:', error);
+      // 如果查询失败，使用默认编号
+      const now = new Date();
+      const datePrefix = now.getFullYear().toString() +
+                        String(now.getMonth() + 1).padStart(2, '0') +
+                        String(now.getDate()).padStart(2, '0');
+      return `${datePrefix}-001`;
     }
   };
 
@@ -202,10 +246,15 @@ export default function ProjectReport(props) {
       const currentOpenid = getCurrentUserOpenid();
       console.log('提交时的_openid:', currentOpenid);
 
+      // 生成项目编号
+      const generatedProjectId = await generateProjectId();
+      setProjectId(generatedProjectId);
+
       // 获取当前用户信息
       const userData = localStorage.getItem('currentUser');
       const currentUser = userData ? JSON.parse(userData) : null;
       const recordData = {
+        project_id: generatedProjectId,
         project_date: formatDateISO(new Date()),
         project_location: {
           province: formData.projectLocation.province,

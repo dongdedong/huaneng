@@ -14,7 +14,8 @@ export function ProjectForm({
   onReset,
   submitting,
   showLocationPicker,
-  setShowLocationPicker
+  setShowLocationPicker,
+  projectId
 }) {
   const [currentUser, setCurrentUser] = useState(null);
   const departments = ['规划部', '豫北项目开发部', '灵宝项目开发部', '南阳项目开发部', '省直项目开发部', '郑州项目开发部', '开封项目开发部', '许昌项目开发部', '漯河项目开发部', '商丘项目开发部', '周口项目开发部'];
@@ -217,6 +218,27 @@ export function ProjectForm({
             </div>
           </div>
 
+          {/* 对接项目编号 */}
+          <div className="space-y-6 pt-4 border-t border-gray-100">
+            <div className="text-center">
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">🔢 对接项目编号</h3>
+              <p className="text-sm text-gray-600">系统自动生成，无需手动填写</p>
+            </div>
+
+            <div className="space-y-3">
+              <div className="w-full h-16 flex items-center justify-center px-4 rounded-2xl border-2 border-blue-200 bg-blue-50/30">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-900 mb-1">
+                    {projectId || '待生成...'}
+                  </div>
+                  <div className="text-xs text-blue-600">
+                    提交时自动生成编号
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* 操作按钮 */}
           <div className="flex gap-4 pt-6">
             <Button
@@ -232,6 +254,13 @@ export function ProjectForm({
               ) : (
                 '📤 提交信息'
               )}
+            </Button>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="h-14 px-6 rounded-2xl border-2 border-gray-300 text-gray-600 hover:bg-gray-50 transition-all duration-200"
+            >
+              🔄 测试编号生成
             </Button>
           </div>
         </CardContent>
