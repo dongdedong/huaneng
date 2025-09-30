@@ -5,7 +5,10 @@ import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, useToas
 // @ts-ignore;
 import { User, Lock, LogIn } from 'lucide-react';
 
-const LoginPage = () => {
+const LoginPage = props => {
+  const {
+    $w
+  } = props;
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -114,9 +117,12 @@ const LoginPage = () => {
           description: `欢迎回来，${validation.user.name}！`
         });
 
-        // 延迟跳转，让用户看到成功提示
+        // 使用平台提供的路由方法进行页面跳转
         setTimeout(() => {
-          window.location.href = '/project-report';
+          $w.utils.redirectTo({
+            pageId: 'project-report',
+            params: {}
+          });
         }, 1000);
       } else {
         toast({
@@ -195,7 +201,13 @@ const LoginPage = () => {
               </div>
               <div className="mt-2 text-xs text-blue-600">
                 如需更多账号，请先使用
-                <a href="/create-users-data" className="underline ml-1">用户数据源创建工具</a>
+                <a href="#create-users-data" className="underline ml-1" onClick={e => {
+                e.preventDefault();
+                toast({
+                  title: "开发工具",
+                  description: "请在开发环境中使用数据源创建工具"
+                });
+              }}>用户数据源创建工具</a>
               </div>
             </div>
           </CardContent>
