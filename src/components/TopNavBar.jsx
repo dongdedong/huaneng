@@ -5,8 +5,10 @@ import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
 import { User, LogOut } from 'lucide-react';
 
-const TopNavBar = (props) => {
-  const { $w } = props;
+const TopNavBar = props => {
+  const {
+    $w
+  } = props;
   const [currentUser, setCurrentUser] = useState(null);
   const {
     toast
@@ -33,8 +35,16 @@ const TopNavBar = (props) => {
 
     // 延迟跳转到登录页
     setTimeout(() => {
-      // 对于微搭平台，使用简单的location跳转
-      window.location.replace('/login');
+      // 使用微搭平台的路由跳转API，确保路由正确
+      if ($w && $w.utils && $w.utils.navigateTo) {
+        $w.utils.navigateTo({
+          pageId: 'login',
+          params: {}
+        });
+      } else {
+        // 备用方案：使用hash路由，确保路径正确
+        window.location.hash = '#/login';
+      }
     }, 1000);
   };
   if (!currentUser) return null;

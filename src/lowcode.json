@@ -1,4 +1,9 @@
 {
   "main": "project-report",
-  "items": []
+  "items": [
+    {
+      "pageId": "login",
+      "path": "/login"
+    }
+  ]
 }
