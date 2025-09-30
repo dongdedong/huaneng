@@ -205,10 +205,6 @@ const LoginPage = props => {
                 <div>• 张三：zhangsan / 123456</div>
                 <div>• 李四：lisi / 123456</div>
               </div>
-              <div className="mt-2 text-xs text-blue-600">
-                如需更多账号，请先使用
-                <a href="/create-users-data" className="underline ml-1">用户数据源创建工具</a>
-              </div>
             </div>
           </CardContent>
         </Card>
