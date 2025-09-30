@@ -1,5 +1,5 @@
 // @ts-ignore;
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 const AuthGuard = ({
   children,
@@ -7,6 +7,8 @@ const AuthGuard = ({
 }) => {
   const [isChecking, setIsChecking] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const isMountedRef = useRef(true);
+
   useEffect(() => {
     // 检查用户是否已登录
     const checkAuth = () => {
@@ -18,18 +20,32 @@ const AuthGuard = ({
         if (isLoggedIn && currentUser) {
           const userData = JSON.parse(currentUser);
           // 可以在这里添加更多验证逻辑，比如检查token是否过期
-          setIsAuthenticated(true);
+          if (isMountedRef.current) {
+            setIsAuthenticated(true);
+          }
         } else {
-          setIsAuthenticated(false);
+          if (isMountedRef.current) {
+            setIsAuthenticated(false);
+          }
         }
       } catch (error) {
         console.error('Auth check error:', error);
-        setIsAuthenticated(false);
+        if (isMountedRef.current) {
+          setIsAuthenticated(false);
+        }
       } finally {
-        setIsChecking(false);
+        if (isMountedRef.current) {
+          setIsChecking(false);
+        }
       }
     };
+
     checkAuth();
+
+    // 清理函数
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // 正在检查认证状态时显示加载界面

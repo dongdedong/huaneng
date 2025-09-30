@@ -1,5 +1,5 @@
 // @ts-ignore;
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, useToast } from '@/components/ui';
 // @ts-ignore;
@@ -17,6 +17,15 @@ const LoginPage = props => {
   const {
     toast
   } = useToast();
+
+  // 用于跟踪组件是否已卸载
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // 从数据库验证用户账号
   const validateUser = async (username, password) => {
@@ -89,6 +98,10 @@ const LoginPage = props => {
   };
   const handleLogin = async e => {
     e.preventDefault();
+
+    // 检查组件是否仍然挂载
+    if (!isMountedRef.current) return;
+
     if (!formData.username || !formData.password) {
       toast({
         title: "请填写完整信息",
@@ -97,10 +110,14 @@ const LoginPage = props => {
       });
       return;
     }
+
+    if (!isMountedRef.current) return;
     setIsLoading(true);
     try {
       // 从数据库验证用户
       const validation = await validateUser(formData.username, formData.password);
+      if (!isMountedRef.current) return;
+
       if (validation.success) {
         // 登录成功，保存用户信息到localStorage
         localStorage.setItem('isLoggedIn', 'true');
@@ -109,37 +126,45 @@ const LoginPage = props => {
           name: validation.user.name,
           phone: validation.user.phone,
           department: validation.user.department,
-          role: validation.user.role,
           loginTime: new Date().toISOString()
         }));
-        toast({
-          title: "登录成功",
-          description: `欢迎回来，${validation.user.name}！`
-        });
 
-        // 使用平台提供的路由方法进行页面跳转
-        setTimeout(() => {
-          $w.utils.redirectTo({
-            pageId: 'project-report',
-            params: {}
+        if (isMountedRef.current) {
+          toast({
+            title: "登录成功",
+            description: `欢迎回来，${validation.user.name}！`
           });
+        }
+
+        // 延迟跳转，让用户看到成功提示
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            window.location.href = '/project-report';
+          }
         }, 1000);
       } else {
-        toast({
-          title: "登录失败",
-          description: validation.message,
-          variant: "destructive"
-        });
+        if (isMountedRef.current) {
+          toast({
+            title: "登录失败",
+            description: validation.message,
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('登录错误:', error);
-      toast({
-        title: "登录失败",
-        description: "网络错误，请稍后重试",
-        variant: "destructive"
-      });
+      if (isMountedRef.current) {
+        toast({
+          title: "登录失败",
+          description: "网络错误，请稍后重试",
+          variant: "destructive"
+        });
+      }
     } finally {
-      setIsLoading(false);
+      // 只有组件仍然挂载时才更新状态
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -201,13 +226,7 @@ const LoginPage = props => {
               </div>
               <div className="mt-2 text-xs text-blue-600">
                 如需更多账号，请先使用
-                <a href="#create-users-data" className="underline ml-1" onClick={e => {
-                e.preventDefault();
-                toast({
-                  title: "开发工具",
-                  description: "请在开发环境中使用数据源创建工具"
-                });
-              }}>用户数据源创建工具</a>
+                <a href="/create-users-data" className="underline ml-1">用户数据源创建工具</a>
               </div>
             </div>
           </CardContent>

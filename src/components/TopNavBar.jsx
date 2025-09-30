@@ -1,5 +1,5 @@
 // @ts-ignore;
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
@@ -7,32 +7,44 @@ import { User, LogOut } from 'lucide-react';
 
 const TopNavBar = () => {
   const [currentUser, setCurrentUser] = useState(null);
+  const isMountedRef = useRef(true);
   const {
     toast
   } = useToast();
+
   useEffect(() => {
     // 获取当前登录用户信息
     try {
       const userData = localStorage.getItem('currentUser');
-      if (userData) {
+      if (userData && isMountedRef.current) {
         setCurrentUser(JSON.parse(userData));
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
+
+    // 清理函数
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
   const handleLogout = () => {
     // 清除登录状态
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('currentUser');
-    toast({
-      title: "已退出登录",
-      description: "您已成功退出系统"
-    });
+
+    if (isMountedRef.current) {
+      toast({
+        title: "已退出登录",
+        description: "您已成功退出系统"
+      });
+    }
 
     // 延迟跳转到登录页
     setTimeout(() => {
-      window.location.href = '/login';
+      if (isMountedRef.current) {
+        window.location.href = '/login';
+      }
     }, 1000);
   };
   if (!currentUser) return null;
