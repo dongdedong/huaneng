@@ -120,15 +120,18 @@ const LoginPage = props => {
 
         // 延迟跳转，让用户看到成功提示
         setTimeout(() => {
+          // 根据用户角色跳转到不同页面
+          const targetPage = validation.user.role === 'admin' ? 'admin-users' : 'project-report';
+
           // 使用微搭平台的路由跳转API，确保路由正确
           if ($w && $w.utils && $w.utils.navigateTo) {
             $w.utils.navigateTo({
-              pageId: 'project-report',
+              pageId: targetPage,
               params: {}
             });
           } else {
             // 备用方案：使用hash路由
-            window.location.hash = '#/project-report';
+            window.location.hash = `#/${targetPage}`;
           }
         }, 1000);
       } else {

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Users, FileText, Settings } from 'lucide-react';
 
 const TopNavBar = props => {
   const {
@@ -24,6 +24,26 @@ const TopNavBar = props => {
       console.error('Failed to load user data:', error);
     }
   }, []);
+
+  // 导航到不同页面
+  const navigateToPage = (pageId) => {
+    try {
+      if ($w && $w.utils && $w.utils.navigateTo) {
+        $w.utils.navigateTo({
+          pageId: pageId,
+          params: {}
+        });
+      } else {
+        // 备用方案：使用hash路由
+        window.location.hash = `#/${pageId}`;
+      }
+    } catch (error) {
+      console.error('页面跳转失败:', error);
+      // 最后的备用方案
+      window.location.hash = `#/${pageId}`;
+    }
+  };
+
   const handleLogout = () => {
     // 清除登录状态
     localStorage.removeItem('isLoggedIn');
@@ -53,11 +73,40 @@ const TopNavBar = props => {
   };
   if (!currentUser) return null;
   return <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm sticky top-0 z-50">
-      <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+      <div className={`mx-auto px-4 py-3 flex items-center justify-between ${currentUser.role === 'admin' ? 'max-w-6xl' : 'max-w-lg'}`}>
         {/* 左侧：系统标题 */}
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-bold text-gray-800">项目填报系统</h1>
+          {currentUser.role === 'admin' && (
+            <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">
+              管理员
+            </span>
+          )}
         </div>
+
+        {/* 中间：Admin导航菜单 */}
+        {currentUser.role === 'admin' && (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigateToPage('admin-users')}
+              className="flex items-center gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
+            >
+              <Users className="h-4 w-4" />
+              <span className="hidden sm:inline">用户管理</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigateToPage('project-report')}
+              className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+            >
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">项目填报</span>
+            </Button>
+          </div>
+        )}
 
         {/* 右侧：用户信息和退出按钮 */}
         <div className="flex items-center gap-3">
