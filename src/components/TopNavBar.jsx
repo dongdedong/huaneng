@@ -5,8 +5,10 @@ import { Button, useToast } from '@/components/ui';
 // @ts-ignore;
 import { User, LogOut } from 'lucide-react';
 
-const TopNavBar = (props) => {
-  const { $w } = props;
+const TopNavBar = props => {
+  const {
+    $w
+  } = props;
   const [currentUser, setCurrentUser] = useState(null);
   const {
     toast
@@ -31,10 +33,22 @@ const TopNavBar = (props) => {
       description: "您已成功退出系统"
     });
 
-    // 延迟跳转到登录页
+    // 使用微搭平台的路由API进行跳转，避免Cannot GET错误
     setTimeout(() => {
-      // 对于微搭平台，使用简单的location跳转
-      window.location.replace('/login');
+      if ($w && $w.utils && $w.utils.redirectTo) {
+        // 使用redirectTo而不是navigateTo，确保完全重定向
+        $w.utils.redirectTo({
+          pageId: 'login',
+          params: {}
+        });
+      } else {
+        // 备用方案：使用hash路由，确保路径正确
+        window.location.hash = '#/login';
+        // 如果hash路由也不行，则直接重载页面
+        setTimeout(() => {
+          window.location.reload();
+        }, 100);
+      }
     }, 1000);
   };
   if (!currentUser) return null;
