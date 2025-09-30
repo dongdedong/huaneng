@@ -264,6 +264,10 @@ export default function ProjectReport(props) {
           county: formData.projectLocation.county,
           full_address: formData.projectLocation.full_address
         },
+        // 新增独立的省市区字段
+        province: formData.projectLocation.province,
+        city: formData.projectLocation.city,
+        district: formData.projectLocation.county,
         project_department: currentUser?.department || formData.projectDepartment,
         project_type: formData.projectType,
         project_capacity: parseFloat(formData.projectCapacity).toFixed(2),
