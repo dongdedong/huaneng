@@ -1181,8 +1181,8 @@ const PickerColumn = forwardRef(({
 }, ref) => {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
-  const itemHeight = 48;
-  const visibleCount = 5;
+  const itemHeight = 40;
+  const visibleCount = 4;
   const totalHeight = itemHeight * visibleCount;
   const paddingItems = Math.floor(visibleCount / 2);
 
@@ -1199,12 +1199,12 @@ const PickerColumn = forwardRef(({
     }
   }, [selectedValue, items]);
 
-  // 极简的滚动处理
+  // 改进的滚动处理，包含吸附效果
   const handleScroll = e => {
     const currentScrollTop = e.target.scrollTop;
     setScrollTop(currentScrollTop);
 
-    // 简单计算：哪个项目最接近中心
+    // 计算最接近中心的项目索引
     const selectedIndex = Math.round(currentScrollTop / itemHeight);
     const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
 
@@ -1213,6 +1213,46 @@ const PickerColumn = forwardRef(({
       onSelect(items[clampedIndex].code);
     }
   };
+
+  // 处理滚动结束后的吸附效果
+  const handleScrollEnd = () => {
+    if (containerRef.current) {
+      const currentScrollTop = containerRef.current.scrollTop;
+      const selectedIndex = Math.round(currentScrollTop / itemHeight);
+      const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
+      const targetScrollTop = clampedIndex * itemHeight;
+
+      // 如果当前位置不够精确，自动吸附到正确位置
+      if (Math.abs(currentScrollTop - targetScrollTop) > 2) {
+        containerRef.current.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
+      }
+    }
+  };
+
+  // 添加滚动结束监听
+  useEffect(() => {
+    let scrollTimer;
+    const container = containerRef.current;
+
+    if (container) {
+      const onScroll = () => {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(handleScrollEnd, 150);
+      };
+
+      container.addEventListener('scrollend', handleScrollEnd);
+      container.addEventListener('scroll', onScroll);
+
+      return () => {
+        container.removeEventListener('scrollend', handleScrollEnd);
+        container.removeEventListener('scroll', onScroll);
+        clearTimeout(scrollTimer);
+      };
+    }
+  }, [selectedValue, items]);
   return <div className={`relative ${className}`} ref={ref}>
       {/* 列标题 */}
       <div className="text-center mb-3">
@@ -1242,7 +1282,17 @@ const PickerColumn = forwardRef(({
           height: `${itemHeight}px`,
           opacity,
           transform: `scale(${scale})`
-        }} onClick={() => onSelect(item.code)}>
+        }} onClick={() => {
+          onSelect(item.code);
+          // 点击后自动滚动到正确位置
+          if (containerRef.current) {
+            const targetScrollTop = index * itemHeight;
+            containerRef.current.scrollTo({
+              top: targetScrollTop,
+              behavior: 'smooth'
+            });
+          }
+        }}>
               {/* 选中背景 */}
               {isSelected && <div className="absolute inset-x-2 inset-y-1 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl border border-green-200 -z-10"></div>}
               <span className="px-2 text-sm">{item.name}</span>
@@ -1270,10 +1320,10 @@ export function ChinaLocationPicker({
   onOpenChange,
   onSelect
 }) {
-  // 河南省固定为41
+  // 河南省固定为41，默认选择郑州市和中原区
   const [selectedProvince, setSelectedProvince] = useState('41');
-  const [selectedCity, setSelectedCity] = useState('');
-  const [selectedCounty, setSelectedCounty] = useState('');
+  const [selectedCity, setSelectedCity] = useState('4101');
+  const [selectedCounty, setSelectedCounty] = useState('410102');
 
   // 只显示河南省数据
   const provinces = [{ code: '41', name: '河南省' }];
@@ -1285,10 +1335,15 @@ export function ChinaLocationPicker({
     // 不做任何操作，省份固定为河南省
   };
 
-  // 城市变化时重置县区
+  // 城市变化时重置县区到第一个选项
   const handleCityChange = cityCode => {
     setSelectedCity(cityCode);
-    setSelectedCounty('');
+    const newCounties = chinaRegions.counties[cityCode] || [];
+    if (newCounties.length > 0) {
+      setSelectedCounty(newCounties[0].code);
+    } else {
+      setSelectedCounty('');
+    }
   };
   const handleConfirm = () => {
     if (selectedProvince && selectedCity && selectedCounty) {
@@ -1302,15 +1357,15 @@ export function ChinaLocationPicker({
   };
   const resetSelection = () => {
     setSelectedProvince('41'); // 保持河南省选中
-    setSelectedCity('');
-    setSelectedCounty('');
+    setSelectedCity('4101'); // 默认郑州市
+    setSelectedCounty('410102'); // 默认中原区
   };
   const handleCancel = () => {
     onOpenChange(false);
     resetSelection();
   };
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[450px] max-h-[80vh] p-0 rounded-t-3xl shadow-2xl border-0" style={{
+      <DialogContent className="sm:max-w-[450px] max-h-[70vh] p-0 rounded-t-3xl shadow-2xl border-0" style={{
       position: 'fixed',
       bottom: 0,
       top: 'auto',
@@ -1376,22 +1431,6 @@ export function ChinaLocationPicker({
             </div>
           </div>
 
-          {/* 选择提示 */}
-          <div className="px-6 pb-4">
-            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100">
-              <div className="flex items-start gap-3">
-                <div className="text-blue-500 text-lg">💡</div>
-                <div>
-                  <h4 className="font-semibold text-blue-800 mb-1">选择提示</h4>
-                  <div className="text-sm text-blue-700 space-y-1">
-                    <p>• 请依次选择省份、城市和区县</p>
-                    <p>• 滑动或点击选择项目所在的具体位置</p>
-                    <p>• 选择完成后点击右上角"确定"按钮</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         <style jsx>{`
