@@ -1,7 +1,7 @@
 // @ts-ignore;
 import React, { useEffect, useState, useRef } from 'react';
 // @ts-ignore;
-import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
+import { Button, Input, Label, RadioGroup, RadioGroupItem, Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
 // @ts-ignore;
 import { MapPin, Calendar, Building2, Lightbulb, Users, User, Phone } from 'lucide-react';
 
@@ -22,24 +22,17 @@ export function ProjectForm({
   // 使用ref来跟踪组件是否已挂载
   const isMountedRef = useRef(true);
   useEffect(() => {
-    // 组件挂载时设置ref为true
-    isMountedRef.current = true;
-
     // 获取当前登录用户信息
     try {
       const userData = localStorage.getItem('currentUser');
-      if (userData) {
-        const user = JSON.parse(userData);
-        // 检查组件是否仍然挂载
-        if (isMountedRef.current) {
-          setCurrentUser(user);
-        }
+      if (userData && isMountedRef.current) {
+        setCurrentUser(JSON.parse(userData));
       }
     } catch (error) {
       console.error('Failed to load user data:', error);
     }
 
-    // 清理函数：组件卸载时设置ref为false
+    // 清理函数
     return () => {
       isMountedRef.current = false;
     };
@@ -64,7 +57,7 @@ export function ProjectForm({
       </div>
 
       {/* 表单卡片 */}
-      <Card className="border-0 shadow-lg rounded-2xl bg-white mx-4 overflow-hidden">
+      <Card className="border-0 shadow-lg rounded-2xl bg-white overflow-hidden">
         <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1"></div>
 
         <CardContent className="p-6 space-y-8">

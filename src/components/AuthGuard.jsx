@@ -18,7 +18,6 @@ const AuthGuard = ({
         // 如果有登录标识和用户信息，则认为已登录
         if (isLoggedIn && currentUser) {
           const userData = JSON.parse(currentUser);
-          // 可以在这里添加更多验证逻辑，比如检查token是否过期
           if (isMountedRef.current) {
             setIsAuthenticated(true);
           }
@@ -58,7 +57,7 @@ const AuthGuard = ({
 
   // 未登录则重定向到登录页
   if (!isAuthenticated) {
-    // 使用系统内置的导航功能而不是react-router-dom
+    // 使用系统内置的导航功能
     if ($w && $w.utils) {
       $w.utils.redirectTo({
         pageId: 'login',

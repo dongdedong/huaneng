@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { Button, Input, Label, Card, CardContent, CardHeader, CardTitle, useToast } from '@/components/ui';
 // @ts-ignore;
-import { User, Lock, LogIn } from 'lucide-react';
+import { User, Lock, LogIn, Building } from 'lucide-react';
 
 const LoginPage = props => {
   const {
@@ -29,7 +29,6 @@ const LoginPage = props => {
   // 从数据库验证用户账号
   const validateUser = async (username, password) => {
     try {
-      // 使用CloudBase数据源查询用户 - 使用正确的V2 API
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'users',
         methodName: 'wedaGetRecordsV2',
@@ -97,8 +96,6 @@ const LoginPage = props => {
   };
   const handleLogin = async e => {
     e.preventDefault();
-
-    // 检查组件是否仍然挂载
     if (!isMountedRef.current) return;
     if (!formData.username || !formData.password) {
       toast({
@@ -111,17 +108,16 @@ const LoginPage = props => {
     if (!isMountedRef.current) return;
     setIsLoading(true);
     try {
-      // 从数据库验证用户
       const validation = await validateUser(formData.username, formData.password);
       if (!isMountedRef.current) return;
       if (validation.success) {
-        // 登录成功，保存用户信息到localStorage
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('currentUser', JSON.stringify({
           username: validation.user.username,
           name: validation.user.name,
           phone: validation.user.phone,
           department: validation.user.department,
+          role: validation.user.role,
           loginTime: new Date().toISOString()
         }));
         if (isMountedRef.current) {
@@ -131,7 +127,7 @@ const LoginPage = props => {
           });
         }
 
-        // 使用平台提供的路由方法进行页面跳转
+        // 使用平台路由跳转
         setTimeout(() => {
           if (isMountedRef.current && $w && $w.utils) {
             $w.utils.redirectTo({
@@ -159,7 +155,6 @@ const LoginPage = props => {
         });
       }
     } finally {
-      // 只有组件仍然挂载时才更新状态
       if (isMountedRef.current) {
         setIsLoading(false);
       }
@@ -172,10 +167,10 @@ const LoginPage = props => {
 
           <CardHeader className="text-center pb-8 pt-8">
             <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <LogIn className="h-10 w-10 text-white" />
+              <Building className="h-10 w-10 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-800 mb-2">
-              项目填报系统
+              新能源项目管理系统
             </CardTitle>
             <p className="text-gray-600 text-sm">
               请登录您的账户以继续
@@ -184,7 +179,6 @@ const LoginPage = props => {
 
           <CardContent className="px-8 pb-8">
             <form onSubmit={handleLogin} className="space-y-6">
-              {/* 用户名输入 */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-base font-semibold text-gray-700">
                   <User className="h-4 w-4 text-blue-600" />
@@ -193,7 +187,6 @@ const LoginPage = props => {
                 <Input type="text" value={formData.username} onChange={e => handleInputChange('username', e.target.value)} placeholder="请输入用户名" className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
               </div>
 
-              {/* 密码输入 */}
               <div className="space-y-2">
                 <Label className="flex items-center gap-2 text-base font-semibold text-gray-700">
                   <Lock className="h-4 w-4 text-blue-600" />
@@ -202,7 +195,6 @@ const LoginPage = props => {
                 <Input type="password" value={formData.password} onChange={e => handleInputChange('password', e.target.value)} placeholder="请输入密码" className="h-12 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200" disabled={isLoading} />
               </div>
 
-              {/* 登录按钮 */}
               <Button type="submit" disabled={isLoading} className="w-full h-12 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]">
                 {isLoading ? <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -214,17 +206,12 @@ const LoginPage = props => {
               </Button>
             </form>
 
-            {/* 示例账号提示 */}
             <div className="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-200">
               <h4 className="font-semibold text-blue-800 mb-2 text-sm">测试账号</h4>
               <div className="text-xs text-blue-700 space-y-1">
                 <div>• 管理员：admin / 123456</div>
                 <div>• 张三：zhangsan / 123456</div>
                 <div>• 李四：lisi / 123456</div>
-              </div>
-              <div className="mt-2 text-xs text-blue-600">
-                如需更多账号，请先使用
-                <a href="/create-users-data" className="underline ml-1">用户数据源创建工具</a>
               </div>
             </div>
           </CardContent>

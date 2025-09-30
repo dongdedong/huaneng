@@ -16,7 +16,7 @@ import TopNavBar from '@/components/TopNavBar';
 // @ts-ignore;
 import AuthGuard from '@/components/AuthGuard';
 
-// 日期格式化工具函数（原生实现）
+// 日期格式化工具函数
 const formatDateISO = date => {
   if (!date) return '';
   const d = new Date(date);
@@ -24,16 +24,6 @@ const formatDateISO = date => {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-};
-const formatDateTime = date => {
-  if (!date) return '';
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const hours = String(d.getHours()).padStart(2, '0');
-  const minutes = String(d.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day} ${hours}:${minutes}`;
 };
 export default function ProjectReport(props) {
   const {
@@ -54,7 +44,6 @@ export default function ProjectReport(props) {
     reporterName: '',
     reporterPhone: ''
   });
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
@@ -63,27 +52,12 @@ export default function ProjectReport(props) {
   // 使用ref来跟踪组件是否已挂载
   const isMountedRef = useRef(true);
   useEffect(() => {
-    // 组件挂载时设置ref为true
-    isMountedRef.current = true;
-
-    // 清理函数：组件卸载时设置ref为false
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  // 获取当前用户的_openid - 直接使用auth信息
-  const getCurrentUserOpenid = () => {
-    try {
-      // 直接从auth获取_openid，避免云函数调用失败
-      return $w?.auth?.currentUser?.openid || 'anonymous';
-    } catch (error) {
-      console.error('获取_openid失败:', error);
-      return 'anonymous';
-    }
-  };
-
-  // 检查重复数据 - 添加组件挂载检查
+  // 检查重复数据
   const checkDuplicateRecords = async formData => {
     try {
       const result = await $w.cloud.callDataSource({
@@ -113,21 +87,11 @@ export default function ProjectReport(props) {
           getCount: true
         }
       });
-
-      // 检查组件是否仍然挂载
-      if (!isMountedRef.current) {
-        console.log('组件已卸载，取消状态更新');
-        return [];
-      }
+      if (!isMountedRef.current) return [];
       return result.records || [];
     } catch (error) {
       console.error('检查重复数据失败:', error);
-
-      // 检查组件是否仍然挂载
-      if (!isMountedRef.current) {
-        console.log('组件已卸载，取消错误状态更新');
-        return [];
-      }
+      if (!isMountedRef.current) return [];
       return [];
     }
   };
@@ -163,16 +127,11 @@ export default function ProjectReport(props) {
     });
   };
 
-  // 实际提交数据 - 添加组件挂载检查
+  // 提交数据
   const submitData = async () => {
     setSubmitting(true);
     try {
-      const currentOpenid = getCurrentUserOpenid();
-      console.log('提交时的_openid:', currentOpenid);
-
-      // 获取当前用户信息
-      const userData = localStorage.getItem('currentUser');
-      const currentUser = userData ? JSON.parse(userData) : null;
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
       const recordData = {
         project_date: formatDateISO(new Date()),
         project_location: {
@@ -181,16 +140,15 @@ export default function ProjectReport(props) {
           county: formData.projectLocation.county,
           full_address: formData.projectLocation.full_address
         },
-        project_department: currentUser?.department || formData.projectDepartment,
+        project_department: currentUser?.department || '',
         project_type: formData.projectType,
         partner_unit: formData.partnerUnit || '',
         reporter_name: formData.reporterName,
         reporter_phone: formData.reporterPhone,
-        _openid: currentOpenid,
+        _openid: $w?.auth?.currentUser?.openid || 'anonymous',
         status: 'submitted',
         remark: ''
       };
-      // 新增记录
       const createResult = await $w.cloud.callDataSource({
         dataSourceName: 'project_report',
         methodName: 'wedaCreateV2',
@@ -198,36 +156,25 @@ export default function ProjectReport(props) {
           data: recordData
         }
       });
-
-      // 检查组件是否仍然挂载
-      if (!isMountedRef.current) {
-        console.log('组件已卸载，取消提交成功状态更新');
-        return;
-      }
+      if (!isMountedRef.current) return;
       if (createResult.id) {
         toast({
           title: "提交成功",
           description: "项目信息已保存"
         });
+        resetForm();
       } else {
         throw new Error('创建失败：未返回记录ID');
       }
-      resetForm();
     } catch (error) {
       console.error('提交失败:', error);
-
-      // 检查组件是否仍然挂载
-      if (!isMountedRef.current) {
-        console.log('组件已卸载，取消提交失败状态更新');
-        return;
-      }
+      if (!isMountedRef.current) return;
       toast({
         title: "提交失败",
         description: error.message || "请稍后重试",
         variant: "destructive"
       });
     } finally {
-      // 检查组件是否仍然挂载
       if (isMountedRef.current) {
         setSubmitting(false);
       }
@@ -235,7 +182,7 @@ export default function ProjectReport(props) {
   };
   const handleSubmit = async () => {
     // 表单验证
-    if (!formData.projectDepartment || !formData.projectType || !formData.reporterName || !formData.reporterPhone) {
+    if (!formData.projectType || !formData.reporterName || !formData.reporterPhone) {
       toast({
         title: "表单不完整",
         description: "请填写所有必填项",
@@ -257,12 +204,7 @@ export default function ProjectReport(props) {
 
     // 检查重复数据
     const duplicates = await checkDuplicateRecords(formData);
-
-    // 检查组件是否仍然挂载
-    if (!isMountedRef.current) {
-      console.log('组件已卸载，取消重复检查状态更新');
-      return;
-    }
+    if (!isMountedRef.current) return;
     if (duplicates.length > 0) {
       setDuplicateRecords(duplicates);
       setShowDuplicateDialog(true);
@@ -281,55 +223,29 @@ export default function ProjectReport(props) {
       description: "您取消了重复数据的提交"
     });
   };
-  if (loading) {
-    return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
-          </div>
-          <p className="text-gray-600 font-medium">加载中...</p>
-        </div>
-      </div>;
-  }
   return <AuthGuard $w={$w}>
       <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
         {/* 顶部导航栏 */}
         <TopNavBar />
 
-        {/* 顶部装饰 */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
-
-        <div className="relative z-10 pb-8 pt-4">
-          <div className="max-w-lg mx-auto px-4">
-            {/* 页面头部 */}
-            <div className="pt-8 pb-6 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
-                <div className="text-2xl">🏗️</div>
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">新能源项目管理</h1>
-              <p className="text-gray-600">项目信息填报与管理系统</p>
-
-              {/* 开发工具链接 */}
-              <div className="mt-4">
-                <a href="#create-users-data" className="text-sm text-blue-600 underline" onClick={e => {
-                e.preventDefault();
-                window.location.hash = 'create-users-data';
-                window.location.reload();
-              }}>
-                  🔧 创建用户数据源（开发工具）
-                </a>
-              </div>
+        <div className="max-w-lg mx-auto px-4 py-8">
+          {/* 页面头部 */}
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+              <div className="text-2xl">🏗️</div>
             </div>
-
-            {/* 填报表单 */}
-            <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} submitting={submitting} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />
-
-            {/* 地址选择器 */}
-            {showLocationPicker && <ChinaLocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSelect={handleLocationSelect} />}
-
-            {/* 重复数据确认弹框 */}
-            <DuplicateConfirmDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog} onConfirm={handleConfirmDuplicate} onCancel={handleCancelDuplicate} duplicateRecords={duplicateRecords} />
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">新能源项目管理</h1>
+            <p className="text-gray-600">项目信息填报与管理系统</p>
           </div>
+
+          {/* 填报表单 */}
+          <ProjectForm formData={formData} onInputChange={handleInputChange} onLocationSelect={handleLocationSelect} onSubmit={handleSubmit} onReset={resetForm} submitting={submitting} showLocationPicker={showLocationPicker} setShowLocationPicker={setShowLocationPicker} />
+
+          {/* 地址选择器 */}
+          {showLocationPicker && <ChinaLocationPicker open={showLocationPicker} onOpenChange={setShowLocationPicker} onSelect={handleLocationSelect} />}
+
+          {/* 重复数据确认弹框 */}
+          <DuplicateConfirmDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog} onConfirm={handleConfirmDuplicate} onCancel={handleCancelDuplicate} duplicateRecords={duplicateRecords} />
         </div>
       </div>
     </AuthGuard>;
