@@ -1,9 +1,9 @@
 // @ts-ignore;
 import React from 'react';
 // @ts-ignore;
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui';
+import { Button, Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui';
 // @ts-ignore;
-import { AlertTriangle, MapPin, Calendar } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 
 export function DuplicateConfirmDialog({
   open,
@@ -12,59 +12,35 @@ export function DuplicateConfirmDialog({
   onCancel,
   duplicateRecords
 }) {
-  if (!duplicateRecords || duplicateRecords.length === 0) {
-    return null;
-  }
-  const formatDate = dateString => {
-    if (!dateString) return '未知日期';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN');
-  };
   return <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md mx-auto">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-amber-600">
+          <div className="flex items-center gap-2 text-amber-600">
             <AlertTriangle className="h-5 w-5" />
-            发现重复数据
-          </DialogTitle>
-          <DialogDescription>
-            系统检测到以下重复的项目信息，是否继续提交？
+            <DialogTitle>重复数据提醒</DialogTitle>
+          </div>
+          <DialogDescription className="text-amber-700">
+            以下类似的项目信息已存在，确认要继续提交吗？
           </DialogDescription>
         </DialogHeader>
-
-        <div className="space-y-4">
-          {duplicateRecords.map((record, index) => <div key={index} className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm font-medium">{record.project_location?.full_address || '未知地址'}</span>
-                </div>
-                <div className="text-sm text-gray-600">
-                  <div>项目类型：{record.project_type || '未知'}</div>
-                  <div>合作单位：{record.partner_unit || '无'}</div>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-3 w-3" />
-                    <span>提交时间：{formatDate(record.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
+        
+        <div className="space-y-2 max-h-40 overflow-y-auto">
+          {duplicateRecords.map((record, index) => <div key={index} className="p-2 border border-amber-200 rounded-md bg-amber-50">
+              <p className="text-sm font-medium">项目：{record.project_type}</p>
+              <p className="text-xs text-gray-600">地点：{record.project_location?.full_address}</p>
+              <p className="text-xs text-gray-600">合作单位：{record.partner_unit || '未填写'}</p>
+              <p className="text-xs text-gray-500">填报人：{record.reporter_name}</p>
             </div>)}
-
-          <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm text-blue-800">
-              💡 提示：重复提交可能导致数据冗余，请确认是否为同一项目。
-            </p>
-          </div>
         </div>
-
-        <div className="flex gap-3 pt-4">
-          <Button variant="outline" onClick={onCancel} className="flex-1">
-            取消提交
+        
+        <DialogFooter className="gap-2 sm:gap-0">
+          <Button variant="outline" onClick={onCancel}>
+            取消
           </Button>
-          <Button onClick={onConfirm} variant="destructive" className="flex-1 bg-amber-500 hover:bg-amber-600">
-            继续提交
+          <Button variant="destructive" onClick={onConfirm}>
+            确认提交
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>;
 }
