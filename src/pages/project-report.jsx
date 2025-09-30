@@ -1,9 +1,9 @@
 // @ts-ignore;
 import React, { useState, useEffect } from 'react';
 // @ts-ignore;
-import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger, useToast } from '@/components/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle, Tabs, TabsContent, TabsList, TabsTrigger, useToast, Input } from '@/components/ui';
 // @ts-ignore;
-import { FileText, Clock, Loader2, RefreshCw } from 'lucide-react';
+import { FileText, Clock, Loader2, Search, Filter, RefreshCw } from 'lucide-react';
 
 // @ts-ignore;
 import { ProjectForm } from '@/components/ProjectForm';
@@ -64,7 +64,10 @@ export default function ProjectReport(props) {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateRecords, setDuplicateRecords] = useState([]);
   const [activeTab, setActiveTab] = useState('form');
-  const [refreshing, setRefreshing] = useState(false);
+  const [searchText, setSearchText] = useState('');
+  const [filterDepartment, setFilterDepartment] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
 
   // 获取当前用户的_openid - 直接使用auth信息
   const getCurrentUserOpenid = () => {
@@ -114,13 +117,12 @@ export default function ProjectReport(props) {
     }
   };
 
-  // 加载当前用户的记录 - 使用 user_id 字段进行查询
+  // 加载当前用户的记录
   const loadMyRecords = async () => {
     try {
       const currentOpenid = getCurrentUserOpenid();
       console.log('当前用户_openid:', currentOpenid);
       if (currentOpenid && currentOpenid !== 'anonymous') {
-        // 使用 user_id 字段进行查询，而不是 _openid
         const userRecords = await $w.cloud.callDataSource({
           dataSourceName: 'project_report',
           methodName: 'wedaGetRecordsV2',
@@ -130,7 +132,7 @@ export default function ProjectReport(props) {
             },
             filter: {
               where: {
-                user_id: {
+                _openid: {
                   $eq: currentOpenid
                 }
               }
@@ -174,27 +176,6 @@ export default function ProjectReport(props) {
       setLoading(false);
     }
   };
-
-  // 手动刷新我的记录
-  const handleRefreshMyRecords = async () => {
-    setRefreshing(true);
-    try {
-      await loadMyRecords();
-      toast({
-        title: "刷新成功",
-        description: "我的记录已更新"
-      });
-    } catch (error) {
-      console.error('刷新记录失败:', error);
-      toast({
-        title: "刷新失败",
-        description: error.message || "请稍后重试",
-        variant: "destructive"
-      });
-    } finally {
-      setRefreshing(false);
-    }
-  };
   useEffect(() => {
     loadData();
   }, []);
@@ -213,6 +194,20 @@ export default function ProjectReport(props) {
     const interval = setInterval(checkOpenidStatus, 3000);
     return () => clearInterval(interval);
   }, []);
+
+  // 过滤记录
+  const filteredRecords = myRecords.filter(record => {
+    // 搜索文本过滤
+    const searchLower = searchText.toLowerCase();
+    const matchesSearch = searchText === '' || (record.project_location?.full_address || '').toLowerCase().includes(searchLower) || (record.reporter_name || '').toLowerCase().includes(searchLower) || (record.partner_unit || '').toLowerCase().includes(searchLower) || (record.project_type || '').toLowerCase().includes(searchLower) || (record.project_department || '').toLowerCase().includes(searchLower);
+
+    // 部门过滤
+    const matchesDepartment = filterDepartment === '' || record.project_department === filterDepartment;
+
+    // 类型过滤
+    const matchesType = filterType === '' || record.project_type === filterType;
+    return matchesSearch && matchesDepartment && matchesType;
+  });
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
@@ -271,8 +266,7 @@ export default function ProjectReport(props) {
         partner_unit: formData.partnerUnit || '',
         reporter_name: formData.reporterName,
         reporter_phone: formData.reporterPhone,
-        user_id: currentOpenid,
-        // 使用 user_id 字段而不是 _openid
+        _openid: currentOpenid,
         status: 'submitted',
         remark: ''
       };
@@ -444,6 +438,27 @@ export default function ProjectReport(props) {
       });
     }
   };
+
+  // 手动刷新我的记录
+  const handleRefreshMyRecords = async () => {
+    await loadMyRecords();
+    toast({
+      title: "刷新成功",
+      description: "我的记录已更新"
+    });
+  };
+
+  // 清空筛选条件
+  const clearFilters = () => {
+    setSearchText('');
+    setFilterDepartment('');
+    setFilterType('');
+    setShowFilters(false);
+  };
+
+  // 获取所有部门和类型的唯一值
+  const departments = [...new Set(myRecords.map(r => r.project_department).filter(Boolean))];
+  const projectTypes = [...new Set(myRecords.map(r => r.project_type).filter(Boolean))];
   if (loading) {
     return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50 flex items-center justify-center">
         <div className="text-center">
@@ -499,36 +514,110 @@ export default function ProjectReport(props) {
               <Card className="border-0 shadow-lg rounded-2xl bg-white/90 backdrop-blur-sm mx-4 overflow-hidden">
                 <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1"></div>
                 <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
-                      <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
-                        <Clock className="h-5 w-5 text-purple-600" />
+                  <CardTitle className="text-xl font-bold flex items-center gap-3 text-gray-900">
+                    <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+                      <Clock className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <div>我的填报</div>
+                      <div className="text-sm font-normal text-gray-600">
+                        共 {filteredRecords.length} 条记录
+                        {filteredRecords.length !== myRecords.length && ` (${myRecords.length} 条中)`}
                       </div>
-                      <div>
-                        <div>我的填报</div>
-                        <div className="text-sm font-normal text-gray-600">共 {myRecords.length} 条记录</div>
-                      </div>
-                    </CardTitle>
-                    <Button variant="ghost" size="sm" onClick={handleRefreshMyRecords} disabled={refreshing} className="h-10 w-10 p-0 hover:bg-purple-50 hover:text-purple-600 rounded-xl" title="刷新记录">
-                      <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
-                    </Button>
-                  </div>
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {myRecords.length === 0 ? <div className="text-center py-12">
-                        <div className="text-6xl mb-4">🗂️</div>
-                        <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
-                        <p className="text-sm text-gray-400 mb-4">
-                          {!$w?.auth?.currentUser?.openid ? "扫码用户也可以看到自己的记录" : "您还没有提交过项目信息"}
-                        </p>
-                        <div className="space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
-                          <p>💡 提示：</p>
-                          <p>• 提交后的记录会显示在这里</p>
-                          <p>• 您可以随时查看、编辑和删除自己的记录</p>
-                          <p>• 点击记录右上角的图标进行操作</p>
+                  {/* 搜索和筛选区域 */}
+                  <div className="space-y-4 mb-6">
+                    {/* 搜索框 */}
+                    <div className="relative">
+                      <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                      <Input placeholder="搜索项目地址、填表人、合作单位、项目类型..." value={searchText} onChange={e => setSearchText(e.target.value)} className="pl-12 h-12 rounded-2xl bg-gray-50 border-gray-200 focus:border-blue-500 focus:bg-white transition-all duration-200" />
+                    </div>
+
+                    {/* 筛选按钮 */}
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => setShowFilters(!showFilters)} className="flex-1 h-10 rounded-xl border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium">
+                        <Filter className="h-4 w-4 mr-2" />
+                        {showFilters ? '隐藏筛选' : '筛选条件'}
+                      </Button>
+                      <Button variant="outline" onClick={handleRefreshMyRecords} className="h-10 px-4 rounded-xl border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 font-medium" title="刷新记录">
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* 筛选面板 */}
+                    {showFilters && <div className="bg-gray-50 rounded-2xl p-4 border border-gray-200 space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-gray-800">筛选条件</h3>
+                          <Button variant="ghost" onClick={clearFilters} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-sm font-medium">
+                            清空筛选
+                          </Button>
                         </div>
-                      </div> : myRecords.map(record => <RecordCard key={record._id} record={record} onView={handleViewRecord} onEdit={handleEdit} onDelete={handleDeleteRecord} isMine={true} />)}
+
+                        {/* 部门筛选 */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">项目开发部</label>
+                          <select value={filterDepartment} onChange={e => setFilterDepartment(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                            <option value="">全部部门</option>
+                            {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                          </select>
+                        </div>
+
+                        {/* 项目类型筛选 */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">项目类型</label>
+                          <select value={filterType} onChange={e => setFilterType(e.target.value)} className="w-full h-10 px-3 rounded-xl border border-gray-300 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200">
+                            <option value="">全部类型</option>
+                            {projectTypes.map(type => <option key={type} value={type}>{type}</option>)}
+                          </select>
+                        </div>
+
+                        {/* 当前筛选状态 */}
+                        {(searchText || filterDepartment || filterType) && <div className="bg-blue-50 rounded-xl p-3 border border-blue-200">
+                            <p className="text-sm text-blue-800 font-medium mb-2">当前筛选：</p>
+                            <div className="flex flex-wrap gap-2">
+                              {searchText && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                  关键词: {searchText}
+                                </span>}
+                              {filterDepartment && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                  部门: {filterDepartment}
+                                </span>}
+                              {filterType && <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                                  类型: {filterType}
+                                </span>}
+                            </div>
+                          </div>}
+                      </div>}
+                  </div>
+
+                  {/* 记录列表 */}
+                  <div className="space-y-3">
+                    {filteredRecords.length === 0 ? <div className="text-center py-12">
+                        {myRecords.length === 0 ? <>
+                            <div className="text-6xl mb-4">🗂️</div>
+                            <p className="text-gray-500 text-lg font-medium mb-2">暂无记录</p>
+                            <p className="text-sm text-gray-400 mb-4">
+                              {!$w?.auth?.currentUser?.openid ? "扫码用户也可以看到自己的记录" : "您还没有提交过项目信息"}
+                            </p>
+                            <div className="space-y-2 text-xs text-gray-500 bg-gray-50 rounded-xl p-4">
+                              <p>💡 提示：</p>
+                              <p>• 提交后的记录会显示在这里</p>
+                              <p>• 您可以随时查看、编辑和删除自己的记录</p>
+                              <p>• 点击记录右上角的图标进行操作</p>
+                            </div>
+                          </> : <>
+                            <div className="text-6xl mb-4">🔍</div>
+                            <p className="text-gray-500 text-lg font-medium mb-2">未找到匹配的记录</p>
+                            <p className="text-sm text-gray-400 mb-4">
+                              请尝试调整搜索关键词或筛选条件
+                            </p>
+                            <Button variant="outline" onClick={clearFilters} className="text-blue-600 border-blue-200 hover:bg-blue-50">
+                              清空筛选条件
+                            </Button>
+                          </>}
+                      </div> : filteredRecords.map(record => <RecordCard key={record._id} record={record} onView={handleViewRecord} onEdit={handleEdit} onDelete={handleDeleteRecord} isMine={true} />)}
                   </div>
                 </CardContent>
               </Card>
