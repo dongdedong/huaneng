@@ -1171,132 +1171,92 @@ const chinaRegions = {
   }
 };
 
-// 高质量iOS风格的滚动选择器列
-const PickerColumn = forwardRef(({
+// iOS风格的滚动选择器 - 全新实现
+const IOSPickerColumn = forwardRef(({
   items,
   selectedValue,
   onSelect,
   className = '',
   label = ''
 }, ref) => {
-  const containerRef = useRef(null);
-  const [scrollTop, setScrollTop] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollContainerRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const scrollTimeoutRef = useRef(null);
-  const lastTouchRef = useRef(null);
+  const isScrollingRef = useRef(false);
 
-  const itemHeight = 40;
-  const visibleCount = 4;
-  const totalHeight = itemHeight * visibleCount;
-  const paddingItems = Math.floor(visibleCount / 2);
+  const itemHeight = 44; // 增加高度，更接近iOS
+  const visibleCount = 5; // 显示5个项目
+  const containerHeight = itemHeight * visibleCount;
+  const centerOffset = Math.floor(visibleCount / 2) * itemHeight;
 
-  // 计算当前选中的索引
-  const getCurrentSelectedIndex = (scrollTop) => {
-    return Math.round(scrollTop / itemHeight);
-  };
+  // 初始化和更新选中值
+  useEffect(() => {
+    if (items.length > 0) {
+      const index = items.findIndex(item => item.code === selectedValue);
+      const targetIndex = index >= 0 ? index : 0;
 
+      if (targetIndex !== currentIndex) {
+        setCurrentIndex(targetIndex);
+        scrollToIndex(targetIndex, false); // 初始化时不使用动画
+      }
+    }
+  }, [selectedValue, items]);
 
   // 滚动到指定索引
   const scrollToIndex = (index, smooth = true) => {
-    if (containerRef.current) {
-      const targetScrollTop = index * itemHeight;
-      containerRef.current.scrollTo({
-        top: targetScrollTop,
-        behavior: smooth ? 'smooth' : 'auto'
-      });
-    }
+    if (!scrollContainerRef.current) return;
+
+    const targetScrollTop = index * itemHeight;
+    scrollContainerRef.current.scrollTo({
+      top: targetScrollTop,
+      behavior: smooth ? 'smooth' : 'auto'
+    });
   };
 
   // 处理滚动事件
-  const handleScroll = (e) => {
-    const currentScrollTop = e.target.scrollTop;
-    setScrollTop(currentScrollTop);
-    setIsScrolling(true);
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+
+    const scrollTop = scrollContainerRef.current.scrollTop;
+    const newIndex = Math.round(scrollTop / itemHeight);
+    const clampedIndex = Math.max(0, Math.min(newIndex, items.length - 1));
 
     // 清除之前的定时器
     if (scrollTimeoutRef.current) {
       clearTimeout(scrollTimeoutRef.current);
     }
 
-    // 设置新的定时器，在滚动停止后执行吸附和选择更新
+    isScrollingRef.current = true;
+
+    // 设置定时器，在滚动停止后处理
     scrollTimeoutRef.current = setTimeout(() => {
-      setIsScrolling(false);
+      isScrollingRef.current = false;
 
-      // 先计算正确的选择索引
-      const maxScrollTop = (items.length - 1) * itemHeight;
-      const minScrollTop = 0;
-      const clampedScrollTop = Math.max(minScrollTop, Math.min(currentScrollTop, maxScrollTop));
-      const selectedIndex = getCurrentSelectedIndex(clampedScrollTop);
-      const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
-
-      // 先更新选中项
-      if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
-        onSelect(items[clampedIndex].code);
+      // 确保吸附到正确位置
+      const targetScrollTop = clampedIndex * itemHeight;
+      if (Math.abs(scrollTop - targetScrollTop) > 2) {
+        scrollContainerRef.current.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
       }
 
-      // 然后执行吸附
-      snapToNearestItem(clampedScrollTop);
-    }, 150);
-  };
-
-  // 吸附到最近的项目
-  const snapToNearestItem = (currentScrollTop) => {
-    if (!containerRef.current || items.length === 0) return;
-
-    const maxScrollTop = (items.length - 1) * itemHeight;
-    const minScrollTop = 0;
-
-    // 确保滚动位置在有效范围内
-    const clampedScrollTop = Math.max(minScrollTop, Math.min(currentScrollTop, maxScrollTop));
-
-    const rawIndex = clampedScrollTop / itemHeight;
-    const selectedIndex = Math.round(rawIndex);
-    const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
-    const targetScrollTop = clampedIndex * itemHeight;
-
-    // 只有当位置偏差超过1px时才进行吸附
-    if (Math.abs(clampedScrollTop - targetScrollTop) > 1) {
-      containerRef.current.scrollTo({
-        top: targetScrollTop,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  // 处理触摸开始
-  const handleTouchStart = (e) => {
-    lastTouchRef.current = e.touches[0].clientY;
-    setIsScrolling(true);
-  };
-
-  // 处理触摸结束
-  const handleTouchEnd = () => {
-    // 延迟一点执行吸附，确保惯性滚动完成
-    setTimeout(() => {
-      if (containerRef.current) {
-        snapToNearestItem(containerRef.current.scrollTop);
+      // 更新选中状态
+      if (clampedIndex !== currentIndex) {
+        setCurrentIndex(clampedIndex);
+        if (items[clampedIndex]) {
+          onSelect(items[clampedIndex].code);
+        }
       }
-    }, 50);
+    }, 100);
   };
 
-  // 初始化滚动位置
-  useEffect(() => {
-    if (selectedValue !== undefined && containerRef.current && items.length > 0) {
-      const selectedIndex = items.findIndex(item => item.code === selectedValue);
-      if (selectedIndex >= 0) {
-        // 初始化时直接跳转，不使用动画
-        const targetScrollTop = selectedIndex * itemHeight;
-        containerRef.current.scrollTop = targetScrollTop;
-        setScrollTop(targetScrollTop);
-      } else if (items.length > 0) {
-        // 如果没有找到选中项，默认选择第一个
-        const targetScrollTop = 0;
-        containerRef.current.scrollTop = targetScrollTop;
-        setScrollTop(targetScrollTop);
-        onSelect(items[0].code);
-      }
-    }
-  }, [selectedValue, items, onSelect]);
+  // 处理点击选择
+  const handleItemClick = (index) => {
+    setCurrentIndex(index);
+    scrollToIndex(index, true);
+    onSelect(items[index].code);
+  };
 
   // 清理定时器
   useEffect(() => {
@@ -1306,138 +1266,118 @@ const PickerColumn = forwardRef(({
       }
     };
   }, []);
-  return <div className={`relative ${className}`} ref={ref}>
+
+  return (
+    <div className={`relative ${className}`} ref={ref}>
       {/* 列标题 */}
       <div className="text-center mb-3">
         <div className="text-sm font-semibold text-gray-700 mb-1">{label}</div>
         <div className="w-8 h-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mx-auto"></div>
       </div>
 
-      <div
-        ref={containerRef}
-        className="overflow-y-auto scrollbar-hide bg-white rounded-2xl shadow-inner border border-gray-100 picker-container"
-        style={{
-          height: `${totalHeight}px`,
-          scrollBehavior: isScrolling ? 'auto' : 'smooth',
-          WebkitOverflowScrolling: 'touch'
-        }}
-        onScroll={handleScroll}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        {/* 顶部填充 */}
-        {Array.from({
-        length: paddingItems
-      }).map((_, i) => <div key={`top-${i}`} style={{
-        height: `${itemHeight}px`
-      }} />)}
+      {/* 滚动容器 */}
+      <div className="relative">
+        <div
+          ref={scrollContainerRef}
+          className="overflow-y-auto scrollbar-hide bg-white rounded-2xl shadow-inner border border-gray-100"
+          style={{
+            height: `${containerHeight}px`,
+            scrollSnapType: 'y mandatory',
+            WebkitOverflowScrolling: 'touch'
+          }}
+          onScroll={handleScroll}
+        >
+          {/* 顶部填充 */}
+          <div style={{ height: `${centerOffset}px` }} />
 
-        {/* 实际选项 */}
-        {items.map((item, index) => {
-        const itemTop = (paddingItems + index) * itemHeight;
-        const itemCenter = itemTop + itemHeight / 2;
-        const distance = Math.abs(itemCenter - (scrollTop + totalHeight / 2));
-        const isSelected = distance < itemHeight / 2;
-        const opacity = Math.max(0.4, 1 - distance / (itemHeight * 1.5));
-        const scale = isSelected ? 1 : Math.max(0.9, 1 - distance / (itemHeight * 3));
-        return <div key={item.code} className={`flex items-center justify-center text-center transition-all duration-200 cursor-pointer relative picker-item ${isSelected ? 'font-bold text-gray-900' : 'text-gray-500'}`} style={{
-          height: `${itemHeight}px`,
-          opacity,
-          transform: `scale(${scale})`
-        }} onClick={() => {
-          onSelect(item.code);
-          // 点击后平滑滚动到正确位置
-          scrollToIndex(index, true);
-        }}>
-              {/* 选中背景 */}
-              {isSelected && <div className="absolute inset-x-2 inset-y-1 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl border border-green-200 -z-10"></div>}
-              <span className="px-2 text-sm">{item.name}</span>
-            </div>;
-      })}
+          {/* 选项列表 */}
+          {items.map((item, index) => {
+            const isSelected = index === currentIndex;
+            const distance = Math.abs(index - currentIndex);
+            const opacity = Math.max(0.3, 1 - distance * 0.3);
+            const scale = isSelected ? 1.0 : Math.max(0.85, 1 - distance * 0.1);
 
-        {/* 底部填充 */}
-        {Array.from({
-        length: paddingItems
-      }).map((_, i) => <div key={`bottom-${i}`} style={{
-        height: `${itemHeight}px`
-      }} />)}
+            return (
+              <div
+                key={item.code}
+                className={`flex items-center justify-center transition-all duration-200 cursor-pointer relative ${
+                  isSelected ? 'font-semibold text-gray-900' : 'text-gray-500'
+                }`}
+                style={{
+                  height: `${itemHeight}px`,
+                  opacity,
+                  transform: `scale(${scale})`,
+                  scrollSnapAlign: 'center'
+                }}
+                onClick={() => handleItemClick(index)}
+              >
+                {isSelected && (
+                  <div className="absolute inset-x-2 inset-y-1 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl border border-green-200 -z-10" />
+                )}
+                <span className="px-2 text-sm whitespace-nowrap">{item.name}</span>
+              </div>
+            );
+          })}
+
+          {/* 底部填充 */}
+          <div style={{ height: `${centerOffset}px` }} />
+        </div>
+
+        {/* 选中指示器 */}
+        <div
+          className="absolute left-0 right-0 border-y-2 border-green-300/50 pointer-events-none"
+          style={{
+            top: `${centerOffset}px`,
+            height: `${itemHeight}px`
+          }}
+        />
       </div>
-
-      {/* 选中指示器 */}
-      <div className="absolute left-2 right-2 border-y-2 border-green-300 bg-green-50/30 pointer-events-none rounded-xl" style={{
-      top: `${totalHeight / 2 - itemHeight / 2 + 44}px`,
-      height: `${itemHeight}px`
-    }} />
-    </div>;
+    </div>
+  );
 });
-PickerColumn.displayName = 'PickerColumn';
+IOSPickerColumn.displayName = 'IOSPickerColumn';
 export function ChinaLocationPicker({
   open,
   onOpenChange,
   onSelect
 }) {
-  // 河南省固定为41，默认选择郑州市和中原区
+  // 简化状态管理 - 直接使用默认值
   const [selectedProvince, setSelectedProvince] = useState('41');
   const [selectedCity, setSelectedCity] = useState('4101');
   const [selectedCounty, setSelectedCounty] = useState('410102');
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  // 确保在对话框打开时初始化默认选择
-  React.useEffect(() => {
-    if (open && !isInitialized) {
-      // 强制设置默认值并标记为已初始化
-      setSelectedProvince('41');
-      setSelectedCity('4101');
-      setSelectedCounty('410102');
-      setIsInitialized(true);
-    }
-  }, [open, isInitialized]);
 
   // 只显示河南省数据
   const provinces = [{ code: '41', name: '河南省' }];
   const cities = chinaRegions.cities['41'] || [];
-  const counties = selectedCity ? chinaRegions.counties[selectedCity] || [] : [];
+  const counties = chinaRegions.counties[selectedCity] || [];
 
   // 省份固定为河南省，不允许修改
-  const handleProvinceChange = provinceCode => {
-    // 不做任何操作，省份固定为河南省
+  const handleProvinceChange = (provinceCode) => {
+    // 省份固定为河南省，不做任何操作
   };
 
   // 城市变化时重置县区到第一个选项
-  const handleCityChange = cityCode => {
-    console.log('handleCityChange called with:', cityCode);
-    const cityName = cities.find(c => c.code === cityCode)?.name || '未知城市';
-    console.log('城市名称:', cityName);
-
+  const handleCityChange = (cityCode) => {
     setSelectedCity(cityCode);
     const newCounties = chinaRegions.counties[cityCode] || [];
-    console.log('对应的区县数据:', newCounties);
-
     if (newCounties.length > 0) {
       setSelectedCounty(newCounties[0].code);
-      console.log('设置区县为:', newCounties[0].name);
-    } else {
-      setSelectedCounty('');
     }
   };
 
-  // 监听城市变化，确保区县数据正确联动
-  React.useEffect(() => {
-    if (selectedCity) {
-      const currentCounties = chinaRegions.counties[selectedCity] || [];
-      if (currentCounties.length > 0 && !currentCounties.find(c => c.code === selectedCounty)) {
-        // 如果当前选中的区县不属于当前城市，重置为第一个
-        setSelectedCounty(currentCounties[0].code);
-      }
-    }
-  }, [selectedCity]);
+  // 县区变化
+  const handleCountyChange = (countyCode) => {
+    setSelectedCounty(countyCode);
+  };
 
-  // 确保初始化后重置状态，避免多次初始化
+  // 每次打开对话框时重置为默认值
   React.useEffect(() => {
-    if (!open && isInitialized) {
-      setIsInitialized(false);
+    if (open) {
+      setSelectedProvince('41');
+      setSelectedCity('4101');
+      setSelectedCounty('410102');
     }
-  }, [open, isInitialized]);
+  }, [open]);
   const handleConfirm = () => {
     if (selectedProvince && selectedCity && selectedCounty) {
       const province = provinces.find(p => p.code === selectedProvince)?.name || '';
@@ -1452,7 +1392,6 @@ export function ChinaLocationPicker({
     setSelectedProvince('41'); // 保持河南省选中
     setSelectedCity('4101'); // 默认郑州市
     setSelectedCounty('410102'); // 默认中原区
-    setIsInitialized(false); // 重置初始化状态
   };
   const handleCancel = () => {
     onOpenChange(false);
@@ -1515,13 +1454,31 @@ export function ChinaLocationPicker({
           <div className="p-6">
             <div className="grid grid-cols-3 gap-4">
               {/* 省份选择 - 固定为河南省 */}
-              <PickerColumn items={provinces} selectedValue={selectedProvince} onSelect={handleProvinceChange} label="省份" className="w-full opacity-60 pointer-events-none" />
+              <IOSPickerColumn
+                items={provinces}
+                selectedValue={selectedProvince}
+                onSelect={handleProvinceChange}
+                label="省份"
+                className="w-full opacity-60 pointer-events-none"
+              />
 
               {/* 城市选择 */}
-              <PickerColumn items={cities} selectedValue={selectedCity} onSelect={handleCityChange} label="城市" className="w-full" />
+              <IOSPickerColumn
+                items={cities}
+                selectedValue={selectedCity}
+                onSelect={handleCityChange}
+                label="城市"
+                className="w-full"
+              />
 
               {/* 区县选择 */}
-              <PickerColumn items={counties} selectedValue={selectedCounty} onSelect={setSelectedCounty} label="区县" className={`w-full ${!selectedCity ? 'opacity-40 pointer-events-none' : ''}`} />
+              <IOSPickerColumn
+                items={counties}
+                selectedValue={selectedCounty}
+                onSelect={handleCountyChange}
+                label="区县"
+                className="w-full"
+              />
             </div>
           </div>
 
@@ -1534,12 +1491,6 @@ export function ChinaLocationPicker({
           }
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
-          }
-          .picker-container {
-            scroll-snap-type: y mandatory;
-          }
-          .picker-item {
-            scroll-snap-align: center;
           }
         `}</style>
       </DialogContent>
