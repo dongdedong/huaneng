@@ -1221,18 +1221,21 @@ const PickerColumn = forwardRef(({
     // 设置新的定时器，在滚动停止后执行吸附和选择更新
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
-      snapToNearestItem(currentScrollTop);
 
-      // 只在滚动停止后更新选中项，避免滚动过程中的频繁调用
+      // 先计算正确的选择索引
       const maxScrollTop = (items.length - 1) * itemHeight;
       const minScrollTop = 0;
       const clampedScrollTop = Math.max(minScrollTop, Math.min(currentScrollTop, maxScrollTop));
       const selectedIndex = getCurrentSelectedIndex(clampedScrollTop);
       const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
 
+      // 先更新选中项
       if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
         onSelect(items[clampedIndex].code);
       }
+
+      // 然后执行吸附
+      snapToNearestItem(clampedScrollTop);
     }, 150);
   };
 
@@ -1282,11 +1285,18 @@ const PickerColumn = forwardRef(({
       const selectedIndex = items.findIndex(item => item.code === selectedValue);
       if (selectedIndex >= 0) {
         // 初始化时直接跳转，不使用动画
-        scrollToIndex(selectedIndex, false);
-        setScrollTop(selectedIndex * itemHeight);
+        const targetScrollTop = selectedIndex * itemHeight;
+        containerRef.current.scrollTop = targetScrollTop;
+        setScrollTop(targetScrollTop);
+      } else if (items.length > 0) {
+        // 如果没有找到选中项，默认选择第一个
+        const targetScrollTop = 0;
+        containerRef.current.scrollTop = targetScrollTop;
+        setScrollTop(targetScrollTop);
+        onSelect(items[0].code);
       }
     }
-  }, [selectedValue, items]);
+  }, [selectedValue, items, onSelect]);
 
   // 清理定时器
   useEffect(() => {
@@ -1370,15 +1380,18 @@ export function ChinaLocationPicker({
   const [selectedProvince, setSelectedProvince] = useState('41');
   const [selectedCity, setSelectedCity] = useState('4101');
   const [selectedCounty, setSelectedCounty] = useState('410102');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 确保在对话框打开时初始化默认选择
   React.useEffect(() => {
-    if (open) {
+    if (open && !isInitialized) {
+      // 强制设置默认值并标记为已初始化
       setSelectedProvince('41');
       setSelectedCity('4101');
       setSelectedCounty('410102');
+      setIsInitialized(true);
     }
-  }, [open]);
+  }, [open, isInitialized]);
 
   // 只显示河南省数据
   const provinces = [{ code: '41', name: '河南省' }];
@@ -1392,10 +1405,17 @@ export function ChinaLocationPicker({
 
   // 城市变化时重置县区到第一个选项
   const handleCityChange = cityCode => {
+    console.log('handleCityChange called with:', cityCode);
+    const cityName = cities.find(c => c.code === cityCode)?.name || '未知城市';
+    console.log('城市名称:', cityName);
+
     setSelectedCity(cityCode);
     const newCounties = chinaRegions.counties[cityCode] || [];
+    console.log('对应的区县数据:', newCounties);
+
     if (newCounties.length > 0) {
       setSelectedCounty(newCounties[0].code);
+      console.log('设置区县为:', newCounties[0].name);
     } else {
       setSelectedCounty('');
     }
@@ -1411,6 +1431,13 @@ export function ChinaLocationPicker({
       }
     }
   }, [selectedCity]);
+
+  // 确保初始化后重置状态，避免多次初始化
+  React.useEffect(() => {
+    if (!open && isInitialized) {
+      setIsInitialized(false);
+    }
+  }, [open, isInitialized]);
   const handleConfirm = () => {
     if (selectedProvince && selectedCity && selectedCounty) {
       const province = provinces.find(p => p.code === selectedProvince)?.name || '';
@@ -1425,6 +1452,7 @@ export function ChinaLocationPicker({
     setSelectedProvince('41'); // 保持河南省选中
     setSelectedCity('4101'); // 默认郑州市
     setSelectedCounty('410102'); // 默认中原区
+    setIsInitialized(false); // 重置初始化状态
   };
   const handleCancel = () => {
     onOpenChange(false);
