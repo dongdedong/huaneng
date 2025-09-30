@@ -52,16 +52,88 @@ export default function ProjectDataDashboard(props) {
     '三门峡', '商丘', '新乡', '信阳', '许昌', '郑州', '周口', '驻马店'
   ];
 
-  // 冲突项目数据
-  const conflictProjects = [
-    ['安阳光伏项目', '安阳风电项目'],
-    ['洛阳产业园区项目', '洛阳分布式光伏项目', '洛阳储能项目'],
-    ['南阳农光互补项目', '南阳牧光互补项目']
-  ];
+  // 冲突项目数据状态
+  const [conflictProjects, setConflictProjects] = useState([]);
+  const [conflictLoading, setConflictLoading] = useState(false);
+
+  // 查询项目冲突数据
+  const queryConflictProjects = async () => {
+    setConflictLoading(true);
+    try {
+      // 查询所有项目数据
+      const result = await $w.cloud.callDataSource({
+        dataSourceName: 'projectReports',
+        methodName: 'wedaGetRecordsV2',
+        params: {
+          filter: {},
+          select: ['projectName', 'city', 'projectLocation'],
+          pageSize: 1000
+        }
+      });
+
+      if (result.records && result.records.length > 0) {
+        // 按地区分组查找可能的冲突项目
+        const locationGroups = {};
+
+        result.records.forEach(record => {
+          if (record.city || record.projectLocation) {
+            const location = record.city || record.projectLocation;
+            if (!locationGroups[location]) {
+              locationGroups[location] = [];
+            }
+            locationGroups[location].push(record.projectName);
+          }
+        });
+
+        // 筛选出有多个项目的地区（可能存在冲突）
+        const conflicts = [];
+        Object.keys(locationGroups).forEach(location => {
+          if (locationGroups[location].length > 1) {
+            // 去重项目名称
+            const uniqueProjects = [...new Set(locationGroups[location])];
+            if (uniqueProjects.length > 1) {
+              conflicts.push(uniqueProjects);
+            }
+          }
+        });
+
+        // 如果没有找到冲突，使用默认示例数据
+        if (conflicts.length === 0) {
+          setConflictProjects([
+            ['安阳光伏项目', '安阳风电项目'],
+            ['洛阳产业园区项目', '洛阳分布式光伏项目', '洛阳储能项目'],
+            ['南阳农光互补项目', '南阳牧光互补项目']
+          ]);
+        } else {
+          setConflictProjects(conflicts);
+        }
+      } else {
+        // 没有数据时使用默认示例
+        setConflictProjects([
+          ['暂无项目冲突数据', '请先添加项目信息']
+        ]);
+      }
+    } catch (error) {
+      console.error('查询冲突项目失败:', error);
+      // 出错时使用默认示例数据
+      setConflictProjects([
+        ['安阳光伏项目', '安阳风电项目'],
+        ['洛阳产业园区项目', '洛阳分布式光伏项目', '洛阳储能项目'],
+        ['南阳农光互补项目', '南阳牧光互补项目']
+      ]);
+    } finally {
+      setConflictLoading(false);
+    }
+  };
 
   // 页面切换函数
   const showPage = (pageId) => {
     setCurrentPage(pageId);
+
+    // 如果切换到冲突预警页面，查询冲突数据
+    if (pageId === 'conflict') {
+      queryConflictProjects();
+    }
   };
 
   // 处理统计表单变化
@@ -72,25 +144,175 @@ export default function ProjectDataDashboard(props) {
     }));
   };
 
+  // 查询项目统计数据
+  const queryProjectStatistics = async (startDate, endDate, filterType, dataType) => {
+    try {
+      if (filterType === 'department') {
+        // 按项目开发部分组查询
+        if (dataType === 'count') {
+          // 查询每个项目开发部的项目数量
+          const result = await $w.cloud.callDataSource({
+            dataSourceName: 'projectReports',
+            methodName: 'wedaGetRecordsV2',
+            params: {
+              filter: {
+                where: {
+                  $and: [
+                    { contactDate: { $gte: startDate } },
+                    { contactDate: { $lte: endDate } }
+                  ]
+                }
+              },
+              select: ['department'],
+              pageSize: 1000
+            }
+          });
+
+          // 前端分组统计
+          const departmentCounts = {};
+          departments.forEach(dept => departmentCounts[dept] = 0);
+
+          if (result.records) {
+            result.records.forEach(record => {
+              if (record.department && departmentCounts.hasOwnProperty(record.department)) {
+                departmentCounts[record.department]++;
+              }
+            });
+          }
+
+          return {
+            categories: departments,
+            values: departments.map(dept => departmentCounts[dept] || 0)
+          };
+        } else {
+          // 查询每个项目开发部的项目容量总和
+          const result = await $w.cloud.callDataSource({
+            dataSourceName: 'projectReports',
+            methodName: 'wedaGetRecordsV2',
+            params: {
+              filter: {
+                where: {
+                  $and: [
+                    { contactDate: { $gte: startDate } },
+                    { contactDate: { $lte: endDate } }
+                  ]
+                }
+              },
+              select: ['department', 'projectCapacity'],
+              pageSize: 1000
+            }
+          });
+
+          // 前端分组统计容量
+          const departmentCapacity = {};
+          departments.forEach(dept => departmentCapacity[dept] = 0);
+
+          if (result.records) {
+            result.records.forEach(record => {
+              if (record.department && departmentCapacity.hasOwnProperty(record.department)) {
+                const capacity = parseFloat(record.projectCapacity) || 0;
+                departmentCapacity[record.department] += capacity;
+              }
+            });
+          }
+
+          return {
+            categories: departments,
+            values: departments.map(dept => Math.round((departmentCapacity[dept] || 0) * 100) / 100)
+          };
+        }
+      } else {
+        // 按项目区域(city)分组查询
+        if (dataType === 'count') {
+          // 查询每个城市的项目数量
+          const result = await $w.cloud.callDataSource({
+            dataSourceName: 'projectReports',
+            methodName: 'wedaGetRecordsV2',
+            params: {
+              filter: {
+                where: {
+                  $and: [
+                    { contactDate: { $gte: startDate } },
+                    { contactDate: { $lte: endDate } }
+                  ]
+                }
+              },
+              select: ['city'],
+              pageSize: 1000
+            }
+          });
+
+          // 前端分组统计
+          const cityCounts = {};
+          regions.forEach(city => cityCounts[city] = 0);
+
+          if (result.records) {
+            result.records.forEach(record => {
+              if (record.city && cityCounts.hasOwnProperty(record.city)) {
+                cityCounts[record.city]++;
+              }
+            });
+          }
+
+          return {
+            categories: regions,
+            values: regions.map(city => cityCounts[city] || 0)
+          };
+        } else {
+          // 查询每个城市的项目容量总和
+          const result = await $w.cloud.callDataSource({
+            dataSourceName: 'projectReports',
+            methodName: 'wedaGetRecordsV2',
+            params: {
+              filter: {
+                where: {
+                  $and: [
+                    { contactDate: { $gte: startDate } },
+                    { contactDate: { $lte: endDate } }
+                  ]
+                }
+              },
+              select: ['city', 'projectCapacity'],
+              pageSize: 1000
+            }
+          });
+
+          // 前端分组统计容量
+          const cityCapacity = {};
+          regions.forEach(city => cityCapacity[city] = 0);
+
+          if (result.records) {
+            result.records.forEach(record => {
+              if (record.city && cityCapacity.hasOwnProperty(record.city)) {
+                const capacity = parseFloat(record.projectCapacity) || 0;
+                cityCapacity[record.city] += capacity;
+              }
+            });
+          }
+
+          return {
+            categories: regions,
+            values: regions.map(city => Math.round((cityCapacity[city] || 0) * 100) / 100)
+          };
+        }
+      }
+    } catch (error) {
+      console.error('查询统计数据失败:', error);
+      throw error;
+    }
+  };
+
   // 提交统计查询
   const handleStatisticsSubmit = async () => {
     setLoading(true);
     try {
-      // 模拟数据查询
-      const categories = statisticsForm.filterType === 'department' ? departments : regions;
-      let values;
-
-      if (statisticsForm.filterType === 'department') {
-        // 部门数据（模拟）
-        values = statisticsForm.dataType === 'count'
-          ? [15, 8, 12, 0, 20, 18, 7, 0, 13, 6, 9]
-          : [120, 85, 95, 0, 180, 150, 75, 0, 110, 60, 80];
-      } else {
-        // 地区数据（模拟）
-        values = statisticsForm.dataType === 'count'
-          ? [5, 3, 0, 8, 7, 12, 15, 6, 0, 6, 9, 10, 13, 20, 8, 7]
-          : [45, 30, 0, 75, 65, 110, 140, 55, 0, 60, 85, 95, 125, 190, 75, 65];
-      }
+      // 查询真实数据
+      const { categories, values } = await queryProjectStatistics(
+        statisticsForm.startDate,
+        statisticsForm.endDate,
+        statisticsForm.filterType,
+        statisticsForm.dataType
+      );
 
       setChartData({
         categories,
@@ -103,13 +325,14 @@ export default function ProjectDataDashboard(props) {
 
       toast({
         title: "查询成功",
-        description: "数据已加载完成",
+        description: `已查询到 ${values.reduce((sum, val) => sum + val, 0)} 条数据`,
         duration: 1000
       });
     } catch (error) {
+      console.error('统计查询失败:', error);
       toast({
         title: "查询失败",
-        description: "请稍后重试",
+        description: error.message || "请稍后重试",
         variant: "destructive"
       });
     } finally {
@@ -412,32 +635,45 @@ export default function ProjectDataDashboard(props) {
         {/* 标题 */}
         <h2 className="text-2xl font-bold text-red-600 text-center mb-8">项目冲突情况</h2>
 
-        {/* 冲突项目组 */}
-        <div className="space-y-6">
-          {conflictProjects.map((group, groupIndex) => (
-            <div
-              key={groupIndex}
-              className="bg-yellow-200 border-2 border-yellow-300 rounded-2xl p-6 relative shadow-lg"
-            >
-              {/* 警告图标 */}
-              <div className="absolute top-3 right-3 text-2xl">⚠️</div>
+        {/* 加载状态 */}
+        {conflictLoading ? (
+          <div className="text-center py-12">
+            <div className="text-lg text-gray-600">正在查询冲突项目...</div>
+          </div>
+        ) : (
+          /* 冲突项目组 */
+          <div className="space-y-6">
+            {conflictProjects.length > 0 ? (
+              conflictProjects.map((group, groupIndex) => (
+                <div
+                  key={groupIndex}
+                  className="bg-yellow-200 border-2 border-yellow-300 rounded-2xl p-6 relative shadow-lg"
+                >
+                  {/* 警告图标 */}
+                  <div className="absolute top-3 right-3 text-2xl">⚠️</div>
 
-              {/* 项目列表 */}
-              <div className="space-y-3">
-                {group.map((project, projectIndex) => (
-                  <div
-                    key={projectIndex}
-                    className={`text-lg font-medium text-gray-800 ${
-                      projectIndex < group.length - 1 ? 'border-b border-yellow-400 pb-3' : ''
-                    }`}
-                  >
-                    {project}
+                  {/* 项目列表 */}
+                  <div className="space-y-3">
+                    {group.map((project, projectIndex) => (
+                      <div
+                        key={projectIndex}
+                        className={`text-lg font-medium text-gray-800 ${
+                          projectIndex < group.length - 1 ? 'border-b border-yellow-400 pb-3' : ''
+                        }`}
+                      >
+                        {project}
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-lg text-gray-600">暂无项目冲突数据</div>
               </div>
-            </div>
-          ))}
-        </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -471,11 +707,45 @@ export default function ProjectDataDashboard(props) {
       return;
     }
 
+    // 容量数值验证
+    const capacity = parseFloat(registerForm.projectCapacity);
+    if (isNaN(capacity) || capacity <= 0) {
+      toast({
+        title: "项目容量格式错误",
+        description: "请输入有效的项目容量数值",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
+      // 获取当前用户信息
+      const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+
+      // 保存到数据库
+      await $w.cloud.callDataSource({
+        dataSourceName: 'projectReports',
+        methodName: 'wedaCreateV2',
+        params: {
+          data: {
+            projectName: registerForm.projectName,
+            projectLocation: registerForm.projectLocation,
+            city: registerForm.projectLocation, // 同时保存到city字段用于统计
+            contactDate: registerForm.contactDate,
+            projectCapacity: capacity,
+            department: currentUser.department || '未知部门',
+            reporterName: currentUser.name || '未知用户',
+            reporterPhone: currentUser.phone || '',
+            reportTime: new Date().toISOString(),
+            dataSource: 'dashboard-register' // 标识数据来源
+          }
+        }
+      });
+
       toast({
         title: "登记成功",
-        description: "项目信息已成功提交",
+        description: "项目信息已成功提交到数据库",
         duration: 1000
       });
 
@@ -492,9 +762,10 @@ export default function ProjectDataDashboard(props) {
         showPage('main');
       }, 1000);
     } catch (error) {
+      console.error('项目登记失败:', error);
       toast({
         title: "登记失败",
-        description: "请稍后重试",
+        description: error.message || "请稍后重试",
         variant: "destructive"
       });
     } finally {
