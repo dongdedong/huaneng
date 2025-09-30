@@ -4,16 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useToast, Button, Input, Label, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui';
 // @ts-ignore;
 import { Loader2, UserPlus, Edit, Trash2, Search, Users, Shield, AlertTriangle } from 'lucide-react';
-
 // @ts-ignore;
 import TopNavBar from '@/components/TopNavBar';
+
 export default function AdminUsers(props) {
-  const {
-    $w
-  } = props;
-  const {
-    toast
-  } = useToast();
+  const { $w } = props;
+  const { toast } = useToast();
 
   // 状态管理
   const [users, setUsers] = useState([]);
@@ -29,21 +25,48 @@ export default function AdminUsers(props) {
 
   // 表单数据
   const [formData, setFormData] = useState({
+    username: '',
+    password: '',
     name: '',
     phone: '',
     department: '',
     role: 'user'
   });
+
+  // 部门选项
+  const departmentOptions = [
+    '规划部',
+    '南阳项目开发部',
+    '豫北项目开发部',
+    '灵宝项目开发部',
+    '省直项目开发部',
+    '郑州项目开发部',
+    '开封项目开发部',
+    '漯河项目开发部',
+    '许昌项目开发部',
+    '商丘项目开发部',
+    '周口项目开发部'
+  ];
+
+  // 角色选项
+  const roleOptions = [
+    { value: 'user', label: '普通用户' },
+    { value: 'manager', label: '经理' },
+    { value: 'admin', label: '管理员' }
+  ];
+
   const isMountedRef = useRef(true);
+
   useEffect(() => {
     isMountedRef.current = true;
     loadUsers();
+
     return () => {
       isMountedRef.current = false;
     };
   }, []);
 
-  // 加载用户列表 - 修复排序字段错误
+  // 加载用户列表
   const loadUsers = async () => {
     try {
       setLoading(true);
@@ -52,13 +75,11 @@ export default function AdminUsers(props) {
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {},
-          // 修复排序字段：使用正确的字段名 'created_time' 而不是 'field'
-          orderBy: [{
-            created_time: 'desc'
-          }],
+          orderBy: [{ field: 'createdAt', direction: 'desc' }],
           pageSize: 100
         }
       });
+
       if (isMountedRef.current) {
         setUsers(result.records || []);
       }
@@ -89,6 +110,8 @@ export default function AdminUsers(props) {
   // 重置表单
   const resetForm = () => {
     setFormData({
+      username: '',
+      password: '',
       name: '',
       phone: '',
       department: '',
@@ -104,9 +127,11 @@ export default function AdminUsers(props) {
   };
 
   // 打开编辑用户对话框
-  const handleEditUser = user => {
+  const handleEditUser = (user) => {
     setEditingUser(user);
     setFormData({
+      username: user.username || '',
+      password: '', // 编辑时密码为空，如果用户不填写则不修改密码
       name: user.name || '',
       phone: user.phone || '',
       department: user.department || '',
@@ -118,10 +143,31 @@ export default function AdminUsers(props) {
   // 保存用户（新增或编辑）
   const handleSaveUser = async () => {
     // 表单验证
-    if (!formData.name || !formData.phone || !formData.department) {
+    if (!formData.username || !formData.name || !formData.phone || !formData.department) {
       toast({
         title: "表单不完整",
         description: "请填写所有必填项",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 新增用户时密码必填
+    if (!editingUser && !formData.password) {
+      toast({
+        title: "密码不能为空",
+        description: "新增用户时必须设置密码",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // 用户名格式验证（小写字母）
+    const usernameRegex = /^[a-z]+$/;
+    if (!usernameRegex.test(formData.username)) {
+      toast({
+        title: "用户名格式错误",
+        description: "用户名必须是小写字母",
         variant: "destructive"
       });
       return;
@@ -137,10 +183,25 @@ export default function AdminUsers(props) {
       });
       return;
     }
+
     try {
       setSubmitting(true);
+
       if (editingUser) {
         // 编辑用户
+        const updateData = {
+          username: formData.username,
+          name: formData.name,
+          phone: formData.phone,
+          department: formData.department,
+          role: formData.role
+        };
+
+        // 如果填写了密码，则更新密码
+        if (formData.password.trim()) {
+          updateData.password = formData.password;
+        }
+
         await $w.cloud.callDataSource({
           dataSourceName: 'users',
           methodName: 'wedaUpdateV2',
@@ -150,23 +211,40 @@ export default function AdminUsers(props) {
                 _id: editingUser._id
               }
             },
-            data: {
-              name: formData.name,
-              phone: formData.phone,
-              department: formData.department,
-              role: formData.role,
-              updated_time: new Date().toISOString()
-            }
+            data: updateData
           }
         });
+
         toast({
           title: "更新成功",
           description: "用户信息已更新",
           duration: 1000
         });
       } else {
-        // 新增用户 - 检查手机号是否已存在
-        const existingUser = await $w.cloud.callDataSource({
+        // 新增用户 - 检查用户名和手机号是否已存在
+        const existingUserByUsername = await $w.cloud.callDataSource({
+          dataSourceName: 'users',
+          methodName: 'wedaGetRecordsV2',
+          params: {
+            filter: {
+              where: {
+                username: formData.username
+              }
+            },
+            pageSize: 1
+          }
+        });
+
+        if (existingUserByUsername.records && existingUserByUsername.records.length > 0) {
+          toast({
+            title: "用户名已存在",
+            description: "该用户名已被使用，请选择其他用户名",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        const existingUserByPhone = await $w.cloud.callDataSource({
           dataSourceName: 'users',
           methodName: 'wedaGetRecordsV2',
           params: {
@@ -178,7 +256,8 @@ export default function AdminUsers(props) {
             pageSize: 1
           }
         });
-        if (existingUser.records && existingUser.records.length > 0) {
+
+        if (existingUserByPhone.records && existingUserByPhone.records.length > 0) {
           toast({
             title: "手机号已存在",
             description: "该手机号已被其他用户使用",
@@ -193,21 +272,23 @@ export default function AdminUsers(props) {
           methodName: 'wedaCreateV2',
           params: {
             data: {
+              username: formData.username,
+              password: formData.password,
               name: formData.name,
               phone: formData.phone,
               department: formData.department,
-              role: formData.role,
-              created_time: new Date().toISOString(),
-              updated_time: new Date().toISOString()
+              role: formData.role
             }
           }
         });
+
         toast({
           title: "创建成功",
           description: "新用户已创建",
           duration: 1000
         });
       }
+
       setShowUserDialog(false);
       resetForm();
       loadUsers();
@@ -224,7 +305,7 @@ export default function AdminUsers(props) {
   };
 
   // 打开删除确认对话框
-  const handleDeleteUser = user => {
+  const handleDeleteUser = (user) => {
     setDeletingUser(user);
     setShowDeleteDialog(true);
   };
@@ -233,6 +314,7 @@ export default function AdminUsers(props) {
   const confirmDeleteUser = async () => {
     try {
       setSubmitting(true);
+
       await $w.cloud.callDataSource({
         dataSourceName: 'users',
         methodName: 'wedaDeleteV2',
@@ -244,11 +326,13 @@ export default function AdminUsers(props) {
           }
         }
       });
+
       toast({
         title: "删除成功",
         description: "用户已删除",
         duration: 1000
       });
+
       setShowDeleteDialog(false);
       setDeletingUser(null);
       loadUsers();
@@ -265,26 +349,25 @@ export default function AdminUsers(props) {
   };
 
   // 过滤用户列表
-  const filteredUsers = users.filter(user => user.name?.toLowerCase().includes(searchTerm.toLowerCase()) || user.phone?.includes(searchTerm) || user.department?.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filteredUsers = users.filter(user =>
+    user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.phone?.includes(searchTerm) ||
+    user.department?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // 角色显示映射
-  const getRoleDisplay = role => {
+  const getRoleDisplay = (role) => {
     const roleMap = {
-      'admin': {
-        label: '管理员',
-        color: 'text-red-600 bg-red-100'
-      },
-      'user': {
-        label: '普通用户',
-        color: 'text-blue-600 bg-blue-100'
-      }
+      'admin': { label: '管理员', color: 'text-red-600 bg-red-100' },
+      'manager': { label: '经理', color: 'text-orange-600 bg-orange-100' },
+      'user': { label: '普通用户', color: 'text-blue-600 bg-blue-100' }
     };
-    return roleMap[role] || {
-      label: '未知',
-      color: 'text-gray-600 bg-gray-100'
-    };
+    return roleMap[role] || { label: '未知', color: 'text-gray-600 bg-gray-100' };
   };
-  return <div className="min-h-screen bg-gray-50">
+
+  return (
+    <div className="min-h-screen bg-gray-50">
       <TopNavBar />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -308,7 +391,12 @@ export default function AdminUsers(props) {
               {/* 搜索框 */}
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input placeholder="搜索用户姓名、手机号或部门..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="pl-10" />
+                <Input
+                  placeholder="搜索用户名、姓名、手机号或部门..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
 
               {/* 添加用户按钮 */}
@@ -333,18 +421,24 @@ export default function AdminUsers(props) {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? <div className="flex items-center justify-center py-12">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                 <span className="ml-2 text-gray-600">加载中...</span>
-              </div> : filteredUsers.length === 0 ? <div className="text-center py-12">
+              </div>
+            ) : filteredUsers.length === 0 ? (
+              <div className="text-center py-12">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">
                   {searchTerm ? '没有找到匹配的用户' : '暂无用户数据'}
                 </p>
-              </div> : <div className="overflow-x-auto">
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-gray-200">
+                      <th className="text-left py-3 px-4 font-semibold text-gray-900">用户名</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900">姓名</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900">手机号</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-900">部门</th>
@@ -355,8 +449,12 @@ export default function AdminUsers(props) {
                   </thead>
                   <tbody>
                     {filteredUsers.map((user, index) => {
-                  const roleDisplay = getRoleDisplay(user.role);
-                  return <tr key={user._id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                      const roleDisplay = getRoleDisplay(user.role);
+                      return (
+                        <tr key={user._id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
+                          <td className="py-4 px-4">
+                            <div className="font-medium text-gray-900">{user.username}</div>
+                          </td>
                           <td className="py-4 px-4">
                             <div className="font-medium text-gray-900">{user.name}</div>
                           </td>
@@ -369,23 +467,35 @@ export default function AdminUsers(props) {
                             </span>
                           </td>
                           <td className="py-4 px-4 text-gray-600">
-                            {user.created_time ? new Date(user.created_time).toLocaleDateString('zh-CN') : '-'}
+                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString('zh-CN') : '-'}
                           </td>
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              <Button variant="ghost" size="sm" onClick={() => handleEditUser(user)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditUser(user)}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                              >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={() => handleDeleteUser(user)} className="text-red-600 hover:text-red-700 hover:bg-red-50">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteUser(user)}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
                           </td>
-                        </tr>;
-                })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
-              </div>}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -402,29 +512,71 @@ export default function AdminUsers(props) {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <Label htmlFor="username">用户名 *</Label>
+              <Input
+                id="username"
+                value={formData.username}
+                onChange={(e) => handleInputChange('username', e.target.value.toLowerCase())}
+                placeholder="请输入用户名（小写字母）"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password">密码 {!editingUser && '*'}</Label>
+              <Input
+                id="password"
+                type="password"
+                value={formData.password}
+                onChange={(e) => handleInputChange('password', e.target.value)}
+                placeholder={editingUser ? "留空则不修改密码" : "请输入密码"}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="name">姓名 *</Label>
-              <Input id="name" value={formData.name} onChange={e => handleInputChange('name', e.target.value)} placeholder="请输入姓名" />
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="请输入姓名"
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="phone">手机号 *</Label>
-              <Input id="phone" value={formData.phone} onChange={e => handleInputChange('phone', e.target.value)} placeholder="请输入11位手机号" maxLength={11} />
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+                placeholder="请输入11位手机号"
+                maxLength={11}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="department">部门 *</Label>
-              <Input id="department" value={formData.department} onChange={e => handleInputChange('department', e.target.value)} placeholder="请输入部门名称" />
+              <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="请选择部门" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departmentOptions.map((dept) => (
+                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="role">角色 *</Label>
-              <Select value={formData.role} onValueChange={value => handleInputChange('role', value)}>
+              <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
                 <SelectTrigger>
                   <SelectValue placeholder="请选择角色" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="user">普通用户</SelectItem>
-                  <SelectItem value="admin">管理员</SelectItem>
+                  {roleOptions.map((role) => (
+                    <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -463,12 +615,17 @@ export default function AdminUsers(props) {
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
               取消
             </Button>
-            <Button variant="destructive" onClick={confirmDeleteUser} disabled={submitting}>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteUser}
+              disabled={submitting}
+            >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               确认删除
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>;
+    </div>
+  );
 }

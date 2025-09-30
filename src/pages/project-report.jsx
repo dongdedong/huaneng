@@ -104,7 +104,9 @@ export default function ProjectReport(props) {
   const generateProjectId = async () => {
     try {
       const now = new Date();
-      const datePrefix = now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+      const datePrefix = now.getFullYear().toString() +
+                        String(now.getMonth() + 1).padStart(2, '0') +
+                        String(now.getDate()).padStart(2, '0');
       const yearPrefix = now.getFullYear().toString();
 
       // 查询当前年度已有的项目编号数量
@@ -128,12 +130,15 @@ export default function ProjectReport(props) {
       const count = result.total || 0;
       const nextSequence = String(count + 1).padStart(3, '0');
       const newProjectId = `${datePrefix}-${nextSequence}`;
+
       return newProjectId;
     } catch (error) {
       console.error('生成项目编号失败:', error);
       // 如果查询失败，使用默认编号
       const now = new Date();
-      const datePrefix = now.getFullYear().toString() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0');
+      const datePrefix = now.getFullYear().toString() +
+                        String(now.getMonth() + 1).padStart(2, '0') +
+                        String(now.getDate()).padStart(2, '0');
       return `${datePrefix}-001`;
     }
   };
