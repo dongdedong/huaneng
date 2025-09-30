@@ -1171,7 +1171,7 @@ const chinaRegions = {
   }
 };
 
-// 简化版iPhone风格的滚动选择器列
+// 高质量iOS风格的滚动选择器列
 const PickerColumn = forwardRef(({
   items,
   selectedValue,
@@ -1181,78 +1181,110 @@ const PickerColumn = forwardRef(({
 }, ref) => {
   const containerRef = useRef(null);
   const [scrollTop, setScrollTop] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const scrollTimeoutRef = useRef(null);
+  const lastTouchRef = useRef(null);
+
   const itemHeight = 40;
   const visibleCount = 4;
   const totalHeight = itemHeight * visibleCount;
   const paddingItems = Math.floor(visibleCount / 2);
 
-  // 初始化滚动位置
-  useEffect(() => {
-    if (selectedValue !== undefined && containerRef.current) {
-      const selectedIndex = items.findIndex(item => item.code === selectedValue);
-      if (selectedIndex >= 0) {
-        // 让选中项居中
-        const targetScrollTop = selectedIndex * itemHeight;
-        containerRef.current.scrollTop = targetScrollTop;
-        setScrollTop(targetScrollTop);
-      }
-    }
-  }, [selectedValue, items]);
+  // 计算当前选中的索引
+  const getCurrentSelectedIndex = (scrollTop) => {
+    return Math.round(scrollTop / itemHeight);
+  };
 
-  // 改进的滚动处理，包含吸附效果
-  const handleScroll = e => {
+  // 滚动到指定索引
+  const scrollToIndex = (index, smooth = true) => {
+    if (containerRef.current) {
+      const targetScrollTop = index * itemHeight;
+      containerRef.current.scrollTo({
+        top: targetScrollTop,
+        behavior: smooth ? 'smooth' : 'auto'
+      });
+    }
+  };
+
+  // 处理滚动事件
+  const handleScroll = (e) => {
     const currentScrollTop = e.target.scrollTop;
     setScrollTop(currentScrollTop);
+    setIsScrolling(true);
 
-    // 计算最接近中心的项目索引
-    const selectedIndex = Math.round(currentScrollTop / itemHeight);
+    // 清除之前的定时器
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+
+    // 实时更新选中项（不触发吸附）
+    const selectedIndex = getCurrentSelectedIndex(currentScrollTop);
     const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
 
-    // 更新选中值
     if (items[clampedIndex] && items[clampedIndex].code !== selectedValue) {
       onSelect(items[clampedIndex].code);
     }
+
+    // 设置新的定时器，在滚动停止后执行吸附
+    scrollTimeoutRef.current = setTimeout(() => {
+      setIsScrolling(false);
+      snapToNearestItem(currentScrollTop);
+    }, 100);
   };
 
-  // 处理滚动结束后的吸附效果
-  const handleScrollEnd = () => {
-    if (containerRef.current) {
-      const currentScrollTop = containerRef.current.scrollTop;
-      const selectedIndex = Math.round(currentScrollTop / itemHeight);
-      const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
-      const targetScrollTop = clampedIndex * itemHeight;
+  // 吸附到最近的项目
+  const snapToNearestItem = (currentScrollTop) => {
+    if (!containerRef.current) return;
 
-      // 如果当前位置不够精确，自动吸附到正确位置
-      if (Math.abs(currentScrollTop - targetScrollTop) > 2) {
-        containerRef.current.scrollTo({
-          top: targetScrollTop,
-          behavior: 'smooth'
-        });
+    const selectedIndex = getCurrentSelectedIndex(currentScrollTop);
+    const clampedIndex = Math.max(0, Math.min(selectedIndex, items.length - 1));
+    const targetScrollTop = clampedIndex * itemHeight;
+
+    // 只有当位置偏差超过1px时才进行吸附
+    if (Math.abs(currentScrollTop - targetScrollTop) > 1) {
+      containerRef.current.scrollTo({
+        top: targetScrollTop,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  // 处理触摸开始
+  const handleTouchStart = (e) => {
+    lastTouchRef.current = e.touches[0].clientY;
+    setIsScrolling(true);
+  };
+
+  // 处理触摸结束
+  const handleTouchEnd = () => {
+    // 延迟一点执行吸附，确保惯性滚动完成
+    setTimeout(() => {
+      if (containerRef.current) {
+        snapToNearestItem(containerRef.current.scrollTop);
+      }
+    }, 50);
+  };
+
+  // 初始化滚动位置
+  useEffect(() => {
+    if (selectedValue !== undefined && containerRef.current && items.length > 0) {
+      const selectedIndex = items.findIndex(item => item.code === selectedValue);
+      if (selectedIndex >= 0) {
+        // 初始化时直接跳转，不使用动画
+        scrollToIndex(selectedIndex, false);
+        setScrollTop(selectedIndex * itemHeight);
       }
     }
-  };
-
-  // 添加滚动结束监听
-  useEffect(() => {
-    let scrollTimer;
-    const container = containerRef.current;
-
-    if (container) {
-      const onScroll = () => {
-        clearTimeout(scrollTimer);
-        scrollTimer = setTimeout(handleScrollEnd, 150);
-      };
-
-      container.addEventListener('scrollend', handleScrollEnd);
-      container.addEventListener('scroll', onScroll);
-
-      return () => {
-        container.removeEventListener('scrollend', handleScrollEnd);
-        container.removeEventListener('scroll', onScroll);
-        clearTimeout(scrollTimer);
-      };
-    }
   }, [selectedValue, items]);
+
+  // 清理定时器
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
   return <div className={`relative ${className}`} ref={ref}>
       {/* 列标题 */}
       <div className="text-center mb-3">
@@ -1260,9 +1292,18 @@ const PickerColumn = forwardRef(({
         <div className="w-8 h-1 bg-gradient-to-r from-green-400 to-blue-500 rounded-full mx-auto"></div>
       </div>
 
-      <div ref={containerRef} className="overflow-y-auto scrollbar-hide bg-white rounded-2xl shadow-inner border border-gray-100" style={{
-      height: `${totalHeight}px`
-    }} onScroll={handleScroll}>
+      <div
+        ref={containerRef}
+        className="overflow-y-auto scrollbar-hide bg-white rounded-2xl shadow-inner border border-gray-100 picker-container"
+        style={{
+          height: `${totalHeight}px`,
+          scrollBehavior: isScrolling ? 'auto' : 'smooth',
+          WebkitOverflowScrolling: 'touch'
+        }}
+        onScroll={handleScroll}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {/* 顶部填充 */}
         {Array.from({
         length: paddingItems
@@ -1278,20 +1319,14 @@ const PickerColumn = forwardRef(({
         const isSelected = distance < itemHeight / 2;
         const opacity = Math.max(0.4, 1 - distance / (itemHeight * 1.5));
         const scale = isSelected ? 1 : Math.max(0.9, 1 - distance / (itemHeight * 3));
-        return <div key={item.code} className={`flex items-center justify-center text-center transition-all duration-200 cursor-pointer relative ${isSelected ? 'font-bold text-gray-900' : 'text-gray-500'}`} style={{
+        return <div key={item.code} className={`flex items-center justify-center text-center transition-all duration-200 cursor-pointer relative picker-item ${isSelected ? 'font-bold text-gray-900' : 'text-gray-500'}`} style={{
           height: `${itemHeight}px`,
           opacity,
           transform: `scale(${scale})`
         }} onClick={() => {
           onSelect(item.code);
-          // 点击后自动滚动到正确位置
-          if (containerRef.current) {
-            const targetScrollTop = index * itemHeight;
-            containerRef.current.scrollTo({
-              top: targetScrollTop,
-              behavior: 'smooth'
-            });
-          }
+          // 点击后平滑滚动到正确位置
+          scrollToIndex(index, true);
         }}>
               {/* 选中背景 */}
               {isSelected && <div className="absolute inset-x-2 inset-y-1 bg-gradient-to-r from-green-100 to-blue-100 rounded-xl border border-green-200 -z-10"></div>}
@@ -1440,6 +1475,12 @@ export function ChinaLocationPicker({
           }
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
+          }
+          .picker-container {
+            scroll-snap-type: y mandatory;
+          }
+          .picker-item {
+            scroll-snap-align: center;
           }
         `}</style>
       </DialogContent>
