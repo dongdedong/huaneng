@@ -613,7 +613,7 @@ export default function ProjectDataDashboard(props) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
       {/* 固定顶部导航栏 */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <TopNavBar {...props} />
+        <TopNavBar {...props} currentPage="project-data-dashboard" />
       </div>
 
       {/* 装饰背景 */}

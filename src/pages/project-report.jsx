@@ -404,7 +404,7 @@ export default function ProjectReport(props) {
   return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50">
       {/* 固定顶部导航栏 */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <TopNavBar $w={$w} />
+        <TopNavBar $w={$w} currentPage="project-report" />
       </div>
 
       {/* 顶部装饰 */}

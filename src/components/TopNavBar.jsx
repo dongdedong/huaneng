@@ -7,7 +7,8 @@ import { User, LogOut, Users, FileText, Settings, BarChart3, Database } from 'lu
 
 const TopNavBar = props => {
   const {
-    $w
+    $w,
+    currentPage = 'project-data-dashboard' // 添加当前页面参数
   } = props;
   const [currentUser, setCurrentUser] = useState(null);
   const {
@@ -71,76 +72,69 @@ const TopNavBar = props => {
       }
     }, 1000);
   };
+  // 判断是否是活动页面
+  const isActivePage = (pageId) => {
+    return currentPage === pageId;
+  };
+
   if (!currentUser) return null;
-  return <div className="bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-sm sticky top-0 z-50">
-      <div className={`mx-auto px-4 py-3 flex items-center justify-between ${currentUser.role === 'admin' ? 'max-w-6xl' : 'max-w-lg'}`}>
-        {/* 左侧：系统标题 */}
-        <div className="flex items-center gap-2">
-          <h1 className="text-lg font-bold text-gray-800">项目填报系统</h1>
-          {currentUser.role === 'admin' && (
-            <span className="px-2 py-1 bg-red-100 text-red-600 text-xs rounded-full font-medium">
-              管理员
-            </span>
-          )}
-        </div>
-
-        {/* 中间：导航菜单 */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateToPage('project-data-dashboard')}
-            className="flex items-center gap-2 text-gray-600 hover:text-green-600 hover:bg-green-50"
-          >
-            <BarChart3 className="h-4 w-4" />
-            <span className="hidden sm:inline">数据展示</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigateToPage('project-report')}
-            className="flex items-center gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-          >
-            <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">项目填报</span>
-          </Button>
-          {currentUser.role === 'admin' && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigateToPage('admin-users')}
-                className="flex items-center gap-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50"
-              >
-                <Users className="h-4 w-4" />
-                <span className="hidden sm:inline">用户管理</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigateToPage('mysql-test')}
-                className="flex items-center gap-2 text-gray-600 hover:text-orange-600 hover:bg-orange-50"
-              >
-                <Database className="h-4 w-4" />
-                <span className="hidden sm:inline">MySQL测试</span>
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* 右侧：用户信息和退出按钮 */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <User className="h-4 w-4" />
+  return <div className="bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-lg sticky top-0 z-50">
+      <div className="max-w-sm mx-auto px-2">
+        <div className="flex items-center justify-between py-3">
+          {/* 左侧：用户信息 */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+              <User className="h-5 w-5 text-white" />
+            </div>
             <div className="flex flex-col">
-              <span className="font-medium">{currentUser.name}</span>
-              {currentUser.department && <span className="text-xs text-gray-500">{currentUser.department}</span>}
+              <span className="text-sm font-semibold text-gray-800">{currentUser.name}</span>
+              <span className="text-xs text-gray-600">{currentUser.department}</span>
             </div>
           </div>
 
-          <Button variant="ghost" size="sm" onClick={handleLogout} className="h-8 px-3 text-gray-600 hover:text-red-600 hover:bg-red-50 transition-colors duration-200" title="退出登录">
-            <LogOut className="h-4 w-4" />
-          </Button>
+          {/* 分界线 */}
+          <div className="w-px h-8 bg-gray-200"></div>
+
+          {/* 右侧：功能图标 */}
+          <div className="flex items-center gap-1">
+            {/* 项目统计 */}
+            <button
+              onClick={() => navigateToPage('project-data-dashboard')}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isActivePage('project-data-dashboard')
+                  ? 'bg-blue-100 text-blue-600 shadow-md scale-110'
+                  : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'
+              }`}
+              title="项目统计"
+            >
+              <BarChart3 className="h-5 w-5" />
+            </button>
+
+            {/* 项目填报 */}
+            <button
+              onClick={() => navigateToPage('project-report')}
+              className={`p-2 rounded-lg transition-all duration-200 ${
+                isActivePage('project-report')
+                  ? 'bg-green-100 text-green-600 shadow-md scale-110'
+                  : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
+              }`}
+              title="项目填报"
+            >
+              <FileText className="h-5 w-5" />
+            </button>
+
+            {/* 分界线 */}
+            <div className="w-px h-6 bg-gray-200 mx-1"></div>
+
+            {/* 退出登录 */}
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200"
+              title="退出登录"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>;
