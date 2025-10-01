@@ -7,7 +7,7 @@ import { ArrowLeft, BarChart3, AlertTriangle, FileText, Calendar, Filter, Trendi
 // @ts-ignore;
 import TopNavBar from '@/components/TopNavBar';
 // @ts-ignore;
-import AdminUsers from '@/pages/admin-users';
+import AdminUsers from './admin-users';
 
 export default function ProjectDataDashboard(props) {
   const { $w } = props;
