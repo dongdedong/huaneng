@@ -53,14 +53,37 @@ const LoginPage = props => {
       } else {
         return {
           success: false,
-          message: '用户名或密码错误'
+          message: '用户名或密码错误（备用验证）',
+          debugInfo: {
+            error: '备用验证：用户名或密码不匹配',
+            environment: {
+              hasWedaObject: !!$w,
+              hasCloudObject: !!($w && $w.cloud),
+              hasCallDataSource: !!($w && $w.cloud && $w.cloud.callDataSource),
+              userAgent: navigator.userAgent,
+              platform: navigator.platform,
+              validationMethod: 'fallback',
+              availableUsers: testUsers.map(u => u.username).join(', ')
+            }
+          }
         };
       }
     } catch (error) {
       console.error('备用验证失败:', error);
       return {
         success: false,
-        message: '验证过程出错，请稍后重试'
+        message: '备用验证过程出错，请稍后重试',
+        debugInfo: {
+          error: error.message,
+          environment: {
+            hasWedaObject: !!$w,
+            hasCloudObject: !!($w && $w.cloud),
+            hasCallDataSource: !!($w && $w.cloud && $w.cloud.callDataSource),
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            validationMethod: 'fallback_error'
+          }
+        }
       };
     }
   };
@@ -250,18 +273,45 @@ const LoginPage = props => {
           console.error('登录失败调试信息:', validation.debugInfo);
         }
 
+        // 构建详细的错误信息用于手机端调试
+        let detailedMessage = validation.message;
+
+        if (validation.debugInfo) {
+          const env = validation.debugInfo.environment;
+          detailedMessage += `\n\n调试信息:\n`;
+          detailedMessage += `• 微搭对象: ${env.hasWedaObject ? '✓' : '✗'}\n`;
+          detailedMessage += `• 云服务: ${env.hasCloudObject ? '✓' : '✗'}\n`;
+          detailedMessage += `• 数据源API: ${env.hasCallDataSource ? '✓' : '✗'}\n`;
+          detailedMessage += `• 平台: ${env.platform}\n`;
+          if (validation.debugInfo.error) {
+            detailedMessage += `• 错误: ${validation.debugInfo.error}`;
+          }
+        }
+
         toast({
           title: "登录失败",
-          description: validation.message,
-          variant: "destructive"
+          description: detailedMessage,
+          variant: "destructive",
+          duration: 8000  // 延长显示时间便于阅读
         });
       }
     } catch (error) {
       console.error('登录错误:', error);
+
+      // 构建详细的错误信息
+      let detailedErrorMessage = "网络错误，请稍后重试";
+      detailedErrorMessage += `\n\n技术详情:\n`;
+      detailedErrorMessage += `• 错误类型: ${error.name || 'Unknown'}\n`;
+      detailedErrorMessage += `• 错误信息: ${error.message || 'No message'}\n`;
+      detailedErrorMessage += `• 微搭环境: ${$w ? '可用' : '不可用'}\n`;
+      detailedErrorMessage += `• 浏览器: ${navigator.userAgent.substring(0, 50)}...\n`;
+      detailedErrorMessage += `• 当前URL: ${window.location.href}`;
+
       toast({
         title: "登录失败",
-        description: "网络错误，请稍后重试",
-        variant: "destructive"
+        description: detailedErrorMessage,
+        variant: "destructive",
+        duration: 10000  // 延长显示时间
       });
     } finally {
       setIsLoading(false);
