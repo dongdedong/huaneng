@@ -26,7 +26,7 @@ export default function MySQLTest(props) {
   // 表单数据
   const [testData, setTestData] = useState({
     // Models API 相关
-    modelName: 'users_tbl',
+    modelName: 'users_tbl', // 默认测试用户表，也可以切换到project_info表
     envType: 'pre', // pre: 体验环境, prod: 正式环境
     insertData: JSON.stringify({
       password: "test123",

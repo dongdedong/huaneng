@@ -111,7 +111,7 @@ export default function ProjectReport(props) {
 
       // 查询当前年度已有的项目编号数量
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
+        dataSourceName: 'project_info',
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {
@@ -147,7 +147,7 @@ export default function ProjectReport(props) {
   const checkDuplicateRecords = async formData => {
     try {
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
+        dataSourceName: 'project_info',
         methodName: 'wedaGetRecordsV2',
         params: {
           select: {
@@ -280,7 +280,7 @@ export default function ProjectReport(props) {
       };
       // 新增记录
       const createResult = await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
+        dataSourceName: 'project_info',
         methodName: 'wedaCreateV2',
         params: {
           data: recordData

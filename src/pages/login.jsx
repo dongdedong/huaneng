@@ -21,9 +21,9 @@ const LoginPage = props => {
   // 从数据库验证用户账号
   const validateUser = async (username, password) => {
     try {
-      // 使用CloudBase数据源查询用户 - 使用正确的V2 API
+      // 使用CloudBase数据源查询用户 - 使用MySQL的users_tbl表
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'users',
+        dataSourceName: 'users_tbl',
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {
