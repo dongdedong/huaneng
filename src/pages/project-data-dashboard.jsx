@@ -1,11 +1,13 @@
 // @ts-ignore;
 import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
-import { useToast, Button } from '@/components/ui';
+import { useToast, Button, Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Label } from '@/components/ui';
 // @ts-ignore;
 import { ArrowLeft, BarChart3, AlertTriangle, FileText, Calendar, Filter, TrendingUp, Building, MapPin, Hash, Zap, Search } from 'lucide-react';
 // @ts-ignore;
 import TopNavBar from '@/components/TopNavBar';
+// @ts-ignore;
+import AdminUsers from '@/pages/admin-users';
 
 export default function ProjectDataDashboard(props) {
   const { $w } = props;
@@ -613,7 +615,7 @@ export default function ProjectDataDashboard(props) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
       {/* 固定顶部导航栏 */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <TopNavBar {...props} currentPage="project-data-dashboard" />
+        <TopNavBar {...props} currentPage={currentPage === 'main' ? 'project-data-dashboard' : currentPage} />
       </div>
 
       {/* 装饰背景 */}
@@ -664,7 +666,22 @@ export default function ProjectDataDashboard(props) {
 
             {/* 登记对接项目 */}
             <div
-              onClick={() => showPage('register')}
+              onClick={() => {
+                try {
+                  if ($w && $w.utils && $w.utils.navigateTo) {
+                    $w.utils.navigateTo({
+                      pageId: 'project-report',
+                      params: {}
+                    });
+                  } else {
+                    // 备用方案：使用hash路由
+                    window.location.hash = '#/project-report';
+                  }
+                } catch (error) {
+                  console.error('页面跳转失败:', error);
+                  window.location.hash = '#/project-report';
+                }
+              }}
               className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl active:scale-[0.98] group"
             >
               <div className="flex items-center gap-4">
@@ -771,35 +788,30 @@ export default function ProjectDataDashboard(props) {
                 <p className="text-xs text-gray-600">按部门或区域进行统计</p>
               </div>
 
-              <div className="space-y-3">
-                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
-                  <input
-                    type="radio"
-                    name="filterType"
-                    value="department"
-                    checked={statisticsForm.filterType === 'department'}
-                    onChange={(e) => handleStatisticsFormChange('filterType', e.target.value)}
-                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-800">项目开发部</span>
-                  </div>
-                </label>
-                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
-                  <input
-                    type="radio"
-                    name="filterType"
-                    value="region"
-                    checked={statisticsForm.filterType === 'region'}
-                    onChange={(e) => handleStatisticsFormChange('filterType', e.target.value)}
-                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
-                  />
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-800">项目区域</span>
-                  </div>
-                </label>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700">选择筛选维度</Label>
+                <Select
+                  value={statisticsForm.filterType}
+                  onValueChange={(value) => handleStatisticsFormChange('filterType', value)}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200">
+                    <SelectValue placeholder="请选择筛选维度" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2 shadow-xl">
+                    <SelectItem value="department" className="rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-blue-600" />
+                        <span>项目开发部</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="region" className="rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-green-600" />
+                        <span>项目区域</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -813,35 +825,30 @@ export default function ProjectDataDashboard(props) {
                 <p className="text-xs text-gray-600">选择要统计的数据指标</p>
               </div>
 
-              <div className="space-y-3">
-                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
-                  <input
-                    type="radio"
-                    name="dataType"
-                    value="count"
-                    checked={statisticsForm.dataType === 'count'}
-                    onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
-                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm font-medium text-gray-800">对接项目数量</span>
-                  </div>
-                </label>
-                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
-                  <input
-                    type="radio"
-                    name="dataType"
-                    value="capacity"
-                    checked={statisticsForm.dataType === 'capacity'}
-                    onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
-                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-800">对接项目容量 (MW)</span>
-                  </div>
-                </label>
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold text-gray-700">选择统计类型</Label>
+                <Select
+                  value={statisticsForm.dataType}
+                  onValueChange={(value) => handleStatisticsFormChange('dataType', value)}
+                >
+                  <SelectTrigger className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-blue-400 focus:bg-white transition-all duration-200">
+                    <SelectValue placeholder="请选择统计类型" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border-2 shadow-xl">
+                    <SelectItem value="count" className="rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Hash className="h-4 w-4 text-blue-600" />
+                        <span>对接项目数量</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="capacity" className="rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-green-600" />
+                        <span>对接项目容量 (MW)</span>
+                      </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
@@ -1108,12 +1115,12 @@ export default function ProjectDataDashboard(props) {
                                 {project.project_id}
                               </span>
                             </div>
-                            <div className="flex items-start gap-2">
-                              <Building className="h-3 w-3 text-green-600 mt-0.5" />
-                              <div className="flex-1">
-                                <span className="text-xs font-semibold text-gray-700 block">合作单位</span>
-                                <span className="text-xs text-gray-800">{project.partner_unit}</span>
-                              </div>
+                            <div className="flex items-center gap-2">
+                              <Building className="h-3 w-3 text-green-600" />
+                              <span className="text-xs font-semibold text-gray-700">合作单位</span>
+                              <span className="text-xs text-gray-800 bg-gray-100 px-2 py-1 rounded">
+                                {project.partner_unit}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -1326,6 +1333,8 @@ export default function ProjectDataDashboard(props) {
         return renderConflictPage();
       case 'register':
         return renderRegisterPage();
+      case 'admin-users':
+        return <AdminUsers {...props} />;
       default:
         return renderMainPage();
     }

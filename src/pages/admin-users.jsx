@@ -366,226 +366,247 @@ export default function AdminUsers(props) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <TopNavBar />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
+      {/* 固定顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <TopNavBar {...props} currentPage="admin-users" />
+      </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* 页面标题 */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-              <Users className="h-5 w-5 text-white" />
+      {/* 装饰背景 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
+
+      {/* 主内容区域 */}
+      <div className="relative z-10 pt-20 pb-4">
+        <div className="max-w-md mx-auto px-1">
+          {/* 页面标题 */}
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-xl">
+              <Users className="h-8 w-8 text-white" />
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">用户管理</h1>
-              <p className="text-gray-600">管理系统用户信息</p>
-            </div>
+            <h1 className="text-xl font-bold text-gray-800 mb-1">用户管理</h1>
+            <p className="text-sm text-gray-600">管理系统用户信息</p>
           </div>
-        </div>
 
-        {/* 操作栏 */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          {/* 操作栏 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-4 mb-4">
+            <div className="space-y-3">
               {/* 搜索框 */}
-              <div className="relative flex-1 max-w-md">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="搜索用户名、姓名、手机号或部门..."
+                  placeholder="搜索用户名、姓名、手机号..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="h-11 pl-10 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200"
                 />
               </div>
 
               {/* 添加用户按钮 */}
-              <Button onClick={handleAddUser} className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
+              <Button
+                onClick={handleAddUser}
+                className="w-full h-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
                 <UserPlus className="h-4 w-4 mr-2" />
                 添加用户
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* 用户列表 */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>用户列表</CardTitle>
-                <CardDescription>
-                  共 {filteredUsers.length} 个用户
-                </CardDescription>
-              </div>
+          {/* 用户列表 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-4">
+            <div className="text-center mb-4">
+              <h3 className="text-base font-bold text-gray-800 mb-1">👥 用户列表</h3>
+              <p className="text-xs text-gray-600">共 {filteredUsers.length} 个用户</p>
             </div>
-          </CardHeader>
-          <CardContent>
+
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="ml-2 text-gray-600">加载中...</span>
+              <div className="flex items-center justify-center py-8">
+                <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+                <span className="ml-2 text-sm text-gray-600">加载中...</span>
               </div>
             ) : filteredUsers.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8">
                 <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">
+                <p className="text-sm text-gray-600">
                   {searchTerm ? '没有找到匹配的用户' : '暂无用户数据'}
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">用户名</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">姓名</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">手机号</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">部门</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">角色</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">创建时间</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-900">操作</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user, index) => {
-                      const roleDisplay = getRoleDisplay(user.role);
-                      return (
-                        <tr key={user._id} className={`border-b border-gray-100 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}>
-                          <td className="py-4 px-4">
-                            <div className="font-medium text-gray-900">{user.username}</div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="font-medium text-gray-900">{user.name}</div>
-                          </td>
-                          <td className="py-4 px-4 text-gray-600">{user.phone}</td>
-                          <td className="py-4 px-4 text-gray-600">{user.department}</td>
-                          <td className="py-4 px-4">
-                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleDisplay.color}`}>
-                              {user.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
-                              {roleDisplay.label}
-                            </span>
-                          </td>
-                          <td className="py-4 px-4 text-gray-600">
-                            {user.createdAt ? new Date(user.createdAt).toLocaleDateString('zh-CN') : '-'}
-                          </td>
-                          <td className="py-4 px-4">
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleEditUser(user)}
-                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteUser(user)}
-                                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
+              <div className="space-y-3">
+                {filteredUsers.map((user, index) => {
+                  const roleDisplay = getRoleDisplay(user.role);
+                  return (
+                    <div
+                      key={user._id}
+                      className="bg-gray-50/50 rounded-xl p-3 border border-gray-200 hover:border-purple-300 hover:bg-white transition-all duration-200"
+                    >
+                      <div className="space-y-2">
+                        {/* 用户基本信息 */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-gradient-to-r from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xs font-bold">
+                                {user.name ? user.name.charAt(0) : user.username.charAt(0).toUpperCase()}
+                              </span>
                             </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900">{user.name}</div>
+                              <div className="text-xs text-gray-600">@{user.username}</div>
+                            </div>
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${roleDisplay.color}`}>
+                            {user.role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
+                            {roleDisplay.label}
+                          </span>
+                        </div>
+
+                        {/* 详细信息 */}
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">📱</span>
+                            <span className="text-gray-700">{user.phone}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-gray-500">🏢</span>
+                            <span className="text-gray-700 truncate">{user.department}</span>
+                          </div>
+                        </div>
+
+                        {/* 操作按钮 */}
+                        <div className="flex gap-2 pt-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                            className="flex-1 h-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
+                          >
+                            <Edit className="h-3 w-3 mr-1" />
+                            编辑
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteUser(user)}
+                            className="flex-1 h-8 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs"
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            删除
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* 用户编辑/新增对话框 */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
+        <DialogContent className="sm:max-w-sm mx-2 rounded-2xl border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
+          <DialogHeader className="text-center pb-2">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg">
+              <UserPlus className="h-6 w-6 text-white" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-gray-800">
               {editingUser ? '编辑用户' : '添加用户'}
             </DialogTitle>
+            <p className="text-xs text-gray-600">
+              {editingUser ? '修改用户信息' : '创建新的系统用户'}
+            </p>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="space-y-3 py-2">
             <div className="space-y-2">
-              <Label htmlFor="username">用户名 *</Label>
+              <Label htmlFor="username" className="text-sm font-semibold text-gray-700">用户名 *</Label>
               <Input
                 id="username"
                 value={formData.username}
                 onChange={(e) => handleInputChange('username', e.target.value.toLowerCase())}
                 placeholder="请输入用户名（小写字母）"
+                className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">密码 {!editingUser && '*'}</Label>
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700">密码 {!editingUser && '*'}</Label>
               <Input
                 id="password"
                 type="password"
                 value={formData.password}
                 onChange={(e) => handleInputChange('password', e.target.value)}
                 placeholder={editingUser ? "留空则不修改密码" : "请输入密码"}
+                className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="name">姓名 *</Label>
+              <Label htmlFor="name" className="text-sm font-semibold text-gray-700">姓名 *</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="请输入姓名"
+                className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">手机号 *</Label>
+              <Label htmlFor="phone" className="text-sm font-semibold text-gray-700">手机号 *</Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
                 placeholder="请输入11位手机号"
                 maxLength={11}
+                className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="department">部门 *</Label>
+              <Label htmlFor="department" className="text-sm font-semibold text-gray-700">部门 *</Label>
               <Select value={formData.department} onValueChange={(value) => handleInputChange('department', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="请选择部门" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-2 shadow-xl">
                   {departmentOptions.map((dept) => (
-                    <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    <SelectItem key={dept} value={dept} className="rounded-lg">{dept}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="role">角色 *</Label>
+              <Label htmlFor="role" className="text-sm font-semibold text-gray-700">角色 *</Label>
               <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl border-2 border-gray-200 bg-gray-50/50 focus:border-purple-400 focus:bg-white transition-all duration-200">
                   <SelectValue placeholder="请选择角色" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-2 shadow-xl">
                   {roleOptions.map((role) => (
-                    <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                    <SelectItem key={role.value} value={role.value} className="rounded-lg">{role.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUserDialog(false)}>
+          <DialogFooter className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowUserDialog(false)}
+              className="flex-1 h-11 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200"
+            >
               取消
             </Button>
-            <Button onClick={handleSaveUser} disabled={submitting}>
+            <Button
+              onClick={handleSaveUser}
+              disabled={submitting}
+              className="flex-1 h-11 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+            >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {editingUser ? '更新' : '创建'}
             </Button>
@@ -595,29 +616,40 @@ export default function AdminUsers(props) {
 
       {/* 删除确认对话框 */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertTriangle className="h-5 w-5" />
+        <DialogContent className="sm:max-w-sm mx-2 rounded-2xl border-0 shadow-2xl bg-white/95 backdrop-blur-sm">
+          <DialogHeader className="text-center pb-2">
+            <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl mx-auto mb-3 flex items-center justify-center shadow-lg">
+              <AlertTriangle className="h-6 w-6 text-white" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-red-600">
               确认删除
             </DialogTitle>
+            <p className="text-xs text-gray-600">此操作不可撤销</p>
           </DialogHeader>
 
-          <div className="py-4">
-            <p className="text-gray-600">
-              确定要删除用户 <span className="font-semibold text-gray-900">{deletingUser?.name}</span> 吗？
+          <div className="py-2 text-center">
+            <p className="text-sm text-gray-700 mb-2">
+              确定要删除用户
             </p>
-            <p className="text-sm text-red-600 mt-2">此操作不可撤销！</p>
+            <div className="bg-red-50 rounded-xl p-3 mb-3">
+              <p className="font-bold text-red-800">{deletingUser?.name}</p>
+              <p className="text-xs text-red-600">@{deletingUser?.username}</p>
+            </div>
+            <p className="text-xs text-red-600">⚠️ 此操作不可撤销！</p>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+          <DialogFooter className="flex gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteDialog(false)}
+              className="flex-1 h-11 rounded-xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200"
+            >
               取消
             </Button>
             <Button
-              variant="destructive"
               onClick={confirmDeleteUser}
               disabled={submitting}
+              className="flex-1 h-11 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
             >
               {submitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               确认删除

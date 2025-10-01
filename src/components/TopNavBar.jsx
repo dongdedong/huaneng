@@ -110,10 +110,10 @@ const TopNavBar = props => {
               <BarChart3 className="h-5 w-5" />
             </button>
 
-            {/* 项目填报 */}
+            {/* 项目填报 - 隐藏按钮 */}
             <button
               onClick={() => navigateToPage('project-report')}
-              className={`p-2 rounded-lg transition-all duration-200 ${
+              className={`hidden p-2 rounded-lg transition-all duration-200 ${
                 isActivePage('project-report')
                   ? 'bg-green-100 text-green-600 shadow-md scale-110'
                   : 'text-gray-500 hover:text-green-600 hover:bg-green-50'
