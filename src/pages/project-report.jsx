@@ -401,14 +401,16 @@ export default function ProjectReport(props) {
         </div>
       </div>;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-green-50">
-      {/* 顶部导航栏 */}
-      <TopNavBar $w={$w} />
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50">
+      {/* 固定顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <TopNavBar $w={$w} />
+      </div>
 
       {/* 顶部装饰 */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-green-500 to-blue-600 opacity-10"></div>
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-      <div className="relative z-10 pb-4 pt-2">
+      <div className="relative z-10 pt-20 pb-4">
         <div className="max-w-sm mx-auto px-2">
 
           {/* 填报表单 */}

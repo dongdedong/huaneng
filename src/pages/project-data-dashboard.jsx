@@ -610,48 +610,89 @@ export default function ProjectDataDashboard(props) {
 
   // 渲染主页面
   const renderMainPage = () => (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
-      <TopNavBar {...props} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
+      {/* 固定顶部导航栏 */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <TopNavBar {...props} />
+      </div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* 页面标题 */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">项目管理系统</h1>
-        </div>
+      {/* 装饰背景 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-        {/* 模块网格 */}
-        <div className="space-y-6">
-          {/* 对接项目统计 */}
-          <div
-            onClick={() => showPage('statistics')}
-            className="bg-blue-500 text-white p-8 rounded-2xl shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-98"
-          >
-            <div className="flex items-center justify-center mb-3">
-              <BarChart3 className="h-8 w-8" />
+      {/* 主内容区域 */}
+      <div className="relative z-10 pt-20 pb-4">
+        <div className="max-w-sm mx-auto px-2">
+          {/* 页面标题卡片 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
+
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                <div className="text-2xl">🏢</div>
+              </div>
+              <h1 className="text-xl font-bold text-gray-800 mb-2">项目管理系统</h1>
+              <p className="text-sm text-gray-600">选择功能模块开始使用</p>
             </div>
-            <div className="text-xl font-bold text-center">对接项目统计</div>
           </div>
 
-          {/* 项目冲突预警 */}
-          <div
-            onClick={() => showPage('conflict')}
-            className="bg-blue-500 text-white p-8 rounded-2xl shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-98"
-          >
-            <div className="flex items-center justify-center mb-3">
-              <AlertTriangle className="h-8 w-8" />
+          {/* 功能模块网格 */}
+          <div className="space-y-4">
+            {/* 对接项目统计 */}
+            <div
+              onClick={() => showPage('statistics')}
+              className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-gray-800 mb-1">对接项目统计</div>
+                  <div className="text-sm text-gray-600">查看项目数据和统计分析</div>
+                </div>
+                <div className="text-blue-500 group-hover:translate-x-1 transition-transform duration-200">
+                  <ArrowLeft className="h-5 w-5 rotate-180" />
+                </div>
+              </div>
             </div>
-            <div className="text-xl font-bold text-center">项目冲突预警</div>
-          </div>
 
-          {/* 登记对接项目 */}
-          <div
-            onClick={() => showPage('register')}
-            className="bg-blue-500 text-white p-8 rounded-2xl shadow-lg cursor-pointer transition-all duration-300 hover:shadow-xl active:scale-98"
-          >
-            <div className="flex items-center justify-center mb-3">
-              <FileText className="h-8 w-8" />
+            {/* 项目冲突预警 */}
+            <div
+              onClick={() => showPage('conflict')}
+              className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-gray-800 mb-1">项目冲突预警</div>
+                  <div className="text-sm text-gray-600">检测项目位置和合作单位冲突</div>
+                </div>
+                <div className="text-red-500 group-hover:translate-x-1 transition-transform duration-200">
+                  <ArrowLeft className="h-5 w-5 rotate-180" />
+                </div>
+              </div>
             </div>
-            <div className="text-xl font-bold text-center">登记对接项目</div>
+
+            {/* 登记对接项目 */}
+            <div
+              onClick={() => showPage('register')}
+              className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 cursor-pointer transition-all duration-300 hover:shadow-2xl active:scale-[0.98] group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-bold text-gray-800 mb-1">登记对接项目</div>
+                  <div className="text-sm text-gray-600">添加新的项目对接信息</div>
+                </div>
+                <div className="text-green-500 group-hover:translate-x-1 transition-transform duration-200">
+                  <ArrowLeft className="h-5 w-5 rotate-180" />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -664,31 +705,29 @@ export default function ProjectDataDashboard(props) {
       {/* 装饰背景 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-      {/* 主内容区域 */}
-      <div className="relative z-10 pb-4 pt-2">
+      {/* 固定头部 */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-sm mx-auto px-2">
-          {/* 头部卡片 */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
-
-            {/* 头部内容 */}
-            <div className="p-4 relative">
-              <button
-                onClick={() => showPage('main')}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                  <BarChart3 className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-lg font-bold text-gray-800">对接项目统计</h1>
-                <p className="text-sm text-gray-600 mt-1">选择统计条件查看项目数据</p>
+          <div className="flex items-center justify-center h-16 relative">
+            <button
+              onClick={() => showPage('main')}
+              className="absolute left-2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                <BarChart3 className="h-4 w-4 text-white" />
               </div>
+              <h1 className="text-lg font-bold text-gray-800">对接项目统计</h1>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 主内容区域 */}
+      <div className="relative z-10 pt-20 pb-4">
+        <div className="max-w-sm mx-auto px-2">
 
           {/* 表单容器 */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 space-y-5">
@@ -852,34 +891,35 @@ export default function ProjectDataDashboard(props) {
         {/* 装饰背景 */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-        {/* 主内容区域 */}
-        <div className="relative z-10 pb-4 pt-2">
+        {/* 固定头部 */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
           <div className="max-w-sm mx-auto px-2">
-            {/* 头部卡片 */}
-            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
-              <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
-
-              {/* 头部内容 */}
-              <div className="p-4 relative">
-                <button
-                  onClick={() => showPage('statistics')}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </button>
-
+            <div className="flex items-center justify-center h-16 relative">
+              <button
+                onClick={() => showPage('statistics')}
+                className="absolute left-2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-full flex items-center justify-center">
+                  <TrendingUp className="h-4 w-4 text-white" />
+                </div>
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-white" />
-                  </div>
                   <h1 className="text-lg font-bold text-gray-800">统计结果</h1>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {statisticsForm.filterType === 'department' ? '按部门统计' : '按区域统计'} ·
-                    {statisticsForm.dataType === 'count' ? '项目数量' : '项目容量'}
+                  <p className="text-xs text-gray-600 -mt-1">
+                    {statisticsForm.filterType === 'department' ? '按部门' : '按区域'} ·
+                    {statisticsForm.dataType === 'count' ? '数量' : '容量'}
                   </p>
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* 主内容区域 */}
+        <div className="relative z-10 pt-20 pb-4">
+          <div className="max-w-sm mx-auto px-2">
 
             {/* 图表控制卡片 */}
             <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-4 mb-6">
@@ -992,31 +1032,29 @@ export default function ProjectDataDashboard(props) {
       {/* 装饰背景 */}
       <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-      {/* 主内容区域 */}
-      <div className="relative z-10 pb-4 pt-2">
+      {/* 固定头部 */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
         <div className="max-w-sm mx-auto px-2">
-          {/* 头部卡片 */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
-
-            {/* 头部内容 */}
-            <div className="p-4 relative">
-              <button
-                onClick={() => showPage('main')}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </button>
-
-              <div className="text-center">
-                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full mx-auto mb-2 flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-white" />
-                </div>
-                <h1 className="text-lg font-bold text-gray-800">项目冲突预警</h1>
-                <p className="text-sm text-gray-600 mt-1">检测项目位置和合作单位冲突</p>
+          <div className="flex items-center justify-center h-16 relative">
+            <button
+              onClick={() => showPage('main')}
+              className="absolute left-2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-red-500 to-orange-500 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-4 w-4 text-white" />
               </div>
+              <h1 className="text-lg font-bold text-gray-800">项目冲突预警</h1>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 主内容区域 */}
+      <div className="relative z-10 pt-20 pb-4">
+        <div className="max-w-sm mx-auto px-2">
 
           {/* 加载状态 */}
           {conflictLoading ? (
