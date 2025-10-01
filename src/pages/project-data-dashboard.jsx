@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore;
 import { useToast, Button } from '@/components/ui';
 // @ts-ignore;
-import { ArrowLeft, BarChart3, AlertTriangle, FileText, Calendar, Filter, TrendingUp } from 'lucide-react';
+import { ArrowLeft, BarChart3, AlertTriangle, FileText, Calendar, Filter, TrendingUp, Building, MapPin, Hash, Zap, Search } from 'lucide-react';
 // @ts-ignore;
 import TopNavBar from '@/components/TopNavBar';
 
@@ -660,93 +660,183 @@ export default function ProjectDataDashboard(props) {
 
   // 渲染统计页面
   const renderStatisticsPage = () => (
-    <div className="min-h-screen bg-gray-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
-      {/* 头部 */}
-      <div className="bg-blue-500 text-white p-4 relative">
-        <button
-          onClick={() => showPage('main')}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-lg hover:bg-blue-600 p-2 rounded"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-bold text-center">对接项目统计</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
+      {/* 装饰背景 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="space-y-6">
-          {/* 时间段选择 */}
-          <div>
-            <label className="block font-bold text-blue-500 text-lg mb-3">时间段</label>
-            <div className="grid grid-cols-2 gap-4">
-              <input
-                type="date"
-                value={statisticsForm.startDate}
-                onChange={(e) => handleStatisticsFormChange('startDate', e.target.value)}
-                min="2000-01-01"
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 outline-none"
-              />
-              <input
-                type="date"
-                value={statisticsForm.endDate}
-                onChange={(e) => handleStatisticsFormChange('endDate', e.target.value)}
-                min={statisticsForm.startDate}
-                max={new Date().toISOString().split('T')[0]}
-                className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 outline-none"
-              />
+      {/* 主内容区域 */}
+      <div className="relative z-10 pb-4 pt-2">
+        <div className="max-w-sm mx-auto px-2">
+          {/* 头部卡片 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
+
+            {/* 头部内容 */}
+            <div className="p-4 relative">
+              <button
+                onClick={() => showPage('main')}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                  <BarChart3 className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-lg font-bold text-gray-800">对接项目统计</h1>
+                <p className="text-sm text-gray-600 mt-1">选择统计条件查看项目数据</p>
+              </div>
             </div>
           </div>
 
-          {/* 筛选项 */}
-          <div>
-            <label className="block font-bold text-blue-500 text-lg mb-3">筛选项</label>
-            <select
-              value={statisticsForm.filterType}
-              onChange={(e) => handleStatisticsFormChange('filterType', e.target.value)}
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 outline-none bg-white"
-            >
-              <option value="department">项目开发部</option>
-              <option value="region">项目区域</option>
-            </select>
-          </div>
+          {/* 表单容器 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 space-y-5">
+            {/* 时间选择区域 */}
+            <div className="space-y-4">
+              <div className="text-center mb-4">
+                <h3 className="text-base font-bold text-gray-800 mb-1">📅 时间范围</h3>
+                <p className="text-xs text-gray-600">选择项目对接的时间段</p>
+              </div>
 
-          {/* 对接项目情况 */}
-          <div>
-            <label className="block font-bold text-blue-500 text-lg mb-3">对接项目情况</label>
-            <div className="space-y-3">
-              <label className="flex items-center cursor-pointer">
+              {/* 开始时间 */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  开始时间
+                </label>
                 <input
-                  type="radio"
-                  name="dataType"
-                  value="count"
-                  checked={statisticsForm.dataType === 'count'}
-                  onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
-                  className="mr-3 w-5 h-5 text-blue-500"
+                  type="date"
+                  value={statisticsForm.startDate}
+                  onChange={(e) => handleStatisticsFormChange('startDate', e.target.value)}
+                  min="2000-01-01"
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full h-11 px-3 border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
                 />
-                <span className="text-lg">对接项目数量</span>
-              </label>
-              <label className="flex items-center cursor-pointer">
+              </div>
+
+              {/* 结束时间 */}
+              <div>
+                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
+                  <Calendar className="h-4 w-4 text-blue-600" />
+                  结束时间
+                </label>
                 <input
-                  type="radio"
-                  name="dataType"
-                  value="capacity"
-                  checked={statisticsForm.dataType === 'capacity'}
-                  onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
-                  className="mr-3 w-5 h-5 text-blue-500"
+                  type="date"
+                  value={statisticsForm.endDate}
+                  onChange={(e) => handleStatisticsFormChange('endDate', e.target.value)}
+                  min={statisticsForm.startDate}
+                  max={new Date().toISOString().split('T')[0]}
+                  className="w-full h-11 px-3 border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
                 />
-                <span className="text-lg">对接项目容量</span>
-              </label>
+              </div>
+            </div>
+
+            {/* 分隔线 */}
+            <div className="border-t border-gray-100 my-5"></div>
+
+            {/* 筛选项区域 */}
+            <div>
+              <div className="text-center mb-4">
+                <h3 className="text-base font-bold text-gray-800 mb-1">🔍 筛选维度</h3>
+                <p className="text-xs text-gray-600">按部门或区域进行统计</p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
+                  <input
+                    type="radio"
+                    name="filterType"
+                    value="department"
+                    checked={statisticsForm.filterType === 'department'}
+                    onChange={(e) => handleStatisticsFormChange('filterType', e.target.value)}
+                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-800">项目开发部</span>
+                  </div>
+                </label>
+                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
+                  <input
+                    type="radio"
+                    name="filterType"
+                    value="region"
+                    checked={statisticsForm.filterType === 'region'}
+                    onChange={(e) => handleStatisticsFormChange('filterType', e.target.value)}
+                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
+                  />
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-800">项目区域</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* 分隔线 */}
+            <div className="border-t border-gray-100 my-5"></div>
+
+            {/* 统计类型区域 */}
+            <div>
+              <div className="text-center mb-4">
+                <h3 className="text-base font-bold text-gray-800 mb-1">📊 统计类型</h3>
+                <p className="text-xs text-gray-600">选择要统计的数据指标</p>
+              </div>
+
+              <div className="space-y-3">
+                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
+                  <input
+                    type="radio"
+                    name="dataType"
+                    value="count"
+                    checked={statisticsForm.dataType === 'count'}
+                    onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
+                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-800">对接项目数量</span>
+                  </div>
+                </label>
+                <label className="flex items-center cursor-pointer p-3 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-all duration-200 bg-gray-50/50">
+                  <input
+                    type="radio"
+                    name="dataType"
+                    value="capacity"
+                    checked={statisticsForm.dataType === 'capacity'}
+                    onChange={(e) => handleStatisticsFormChange('dataType', e.target.value)}
+                    className="mr-3 w-4 h-4 text-blue-500 border-gray-300"
+                  />
+                  <div className="flex items-center gap-2">
+                    <Zap className="h-4 w-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-800">对接项目容量 (MW)</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {/* 提交按钮 */}
+            <div className="pt-4">
+              <Button
+                onClick={handleStatisticsSubmit}
+                disabled={loading}
+                className="w-full h-12 bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] disabled:transform-none disabled:shadow-lg"
+              >
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    查询中...
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    开始统计
+                  </div>
+                )}
+              </Button>
             </div>
           </div>
-
-          {/* 提交按钮 */}
-          <Button
-            onClick={handleStatisticsSubmit}
-            disabled={loading}
-            className="w-full bg-blue-500 hover:bg-blue-600 text-white text-lg font-bold py-4 rounded-lg"
-          >
-            {loading ? '查询中...' : '提交'}
-          </Button>
         </div>
       </div>
     </div>
@@ -758,80 +848,135 @@ export default function ProjectDataDashboard(props) {
     const maxValue = getMaxValue(displayData);
 
     return (
-      <div className="min-h-screen bg-gray-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
-        {/* 头部 */}
-        <div className="bg-blue-500 text-white p-4 relative">
-          <button
-            onClick={() => showPage('statistics')}
-            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-lg hover:bg-blue-600 p-2 rounded"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-xl font-bold text-center">统计结果</h1>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
+        {/* 装饰背景 */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-        <div className="max-w-4xl mx-auto px-4 py-6">
-          {/* 图表控制 */}
-          <div className="bg-gray-100 p-4 rounded-lg mb-6 flex justify-between items-center">
-            <div className="flex items-center space-x-2">
-              <label className="text-sm font-medium">排序方式：</label>
-              <select
-                value={chartData.sortOrder}
-                onChange={(e) => handleSortChange(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded text-sm"
-              >
-                <option value="desc">降序</option>
-                <option value="asc">升序</option>
-              </select>
-            </div>
-            <button
-              onClick={toggleZeroData}
-              className={`text-sm px-3 py-1 rounded transition-all ${
-                chartData.hideZeroData
-                  ? 'font-bold text-blue-600 bg-blue-100'
-                  : 'text-gray-600 hover:bg-gray-200'
-              }`}
-            >
-              是否隐藏0数据
-            </button>
-          </div>
+        {/* 主内容区域 */}
+        <div className="relative z-10 pb-4 pt-2">
+          <div className="max-w-sm mx-auto px-2">
+            {/* 头部卡片 */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
+              <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
 
-          {/* 图表容器 */}
-          <div className="bg-white p-6 rounded-lg shadow-lg relative">
-            {/* Y轴标签 */}
-            <div className="absolute left-2 top-1/2 transform -translate-y-1/2 -rotate-90 text-sm font-bold text-gray-600">
-              {statisticsForm.dataType === 'count' ? '对接项目数量' : '对接项目容量 (MW)'}
+              {/* 头部内容 */}
+              <div className="p-4 relative">
+                <button
+                  onClick={() => showPage('statistics')}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </button>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-white" />
+                  </div>
+                  <h1 className="text-lg font-bold text-gray-800">统计结果</h1>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {statisticsForm.filterType === 'department' ? '按部门统计' : '按区域统计'} ·
+                    {statisticsForm.dataType === 'count' ? '项目数量' : '项目容量'}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* 图表区域 */}
-            <div className="ml-8 mr-4">
-              <div className="flex items-end justify-center space-x-1 h-80 overflow-x-auto pb-16">
-                {displayData.map((item, index) => {
-                  const barHeight = Math.max(20, (item.value / maxValue) * 250);
-                  return (
-                    <div key={index} className="flex flex-col items-center min-w-[50px]">
-                      {/* 数值标签 */}
-                      <div className="text-xs font-bold text-gray-700 mb-1">
-                        {item.value}
-                      </div>
-                      {/* 柱子 */}
-                      <div
-                        className="bg-blue-500 w-6 rounded-t transition-all duration-500 shadow-lg hover:bg-blue-600"
-                        style={{ height: `${barHeight}px` }}
-                      />
-                      {/* 分类标签 */}
-                      <div className="text-xs text-gray-600 mt-2 transform -rotate-45 origin-top-left w-12 h-12 flex items-start">
-                        <span className="whitespace-nowrap">{item.label}</span>
-                      </div>
-                    </div>
-                  );
-                })}
+            {/* 图表控制卡片 */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-4 mb-6">
+              <div className="flex flex-col space-y-3">
+                {/* 排序控制 */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <Filter className="h-4 w-4 text-blue-600" />
+                    排序方式
+                  </label>
+                  <select
+                    value={chartData.sortOrder}
+                    onChange={(e) => handleSortChange(e.target.value)}
+                    className="px-3 py-2 border-2 border-gray-200 bg-gray-50/50 rounded-lg text-sm focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
+                  >
+                    <option value="desc">从高到低</option>
+                    <option value="asc">从低到高</option>
+                  </select>
+                </div>
+
+                {/* 零值数据控制 */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-700">隐藏零值数据</span>
+                  <button
+                    onClick={toggleZeroData}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      chartData.hideZeroData
+                        ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg'
+                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    }`}
+                  >
+                    {chartData.hideZeroData ? '已隐藏' : '未隐藏'}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* 图表容器 */}
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-4 relative overflow-hidden">
+              {/* 图表标题 */}
+              <div className="text-center mb-4">
+                <h3 className="text-base font-bold text-gray-800">
+                  {statisticsForm.dataType === 'count' ? '📊 项目数量统计' : '⚡ 项目容量统计 (MW)'}
+                </h3>
+                <p className="text-xs text-gray-600 mt-1">
+                  {statisticsForm.filterType === 'department' ? '各部门' : '各区域'}数据对比
+                </p>
               </div>
 
-              {/* X轴标签 */}
-              <div className="text-center mt-4">
-                <div className="text-sm font-bold text-gray-600">
-                  {statisticsForm.filterType === 'department' ? '项目开发部' : '项目区域'}
+              {/* 移动端优化的图表区域 */}
+              <div className="overflow-x-auto">
+                <div className="flex items-end justify-start space-x-2 h-64 min-w-max px-2 pb-8">
+                  {displayData.map((item, index) => {
+                    const barHeight = Math.max(10, (item.value / maxValue) * 200);
+                    const barColor = index % 2 === 0
+                      ? 'bg-gradient-to-t from-blue-500 to-blue-400'
+                      : 'bg-gradient-to-t from-green-500 to-green-400';
+
+                    return (
+                      <div key={index} className="flex flex-col items-center min-w-[40px]">
+                        {/* 数值标签 */}
+                        <div className="text-xs font-bold text-gray-700 mb-1 bg-white/80 px-1 rounded">
+                          {item.value}
+                        </div>
+                        {/* 柱子 */}
+                        <div
+                          className={`${barColor} w-8 rounded-t-lg shadow-md transition-all duration-500 hover:shadow-lg`}
+                          style={{ height: `${barHeight}px` }}
+                        />
+                        {/* 分类标签 */}
+                        <div className="text-xs text-gray-600 mt-2 text-center max-w-[60px]">
+                          <span className="block truncate" title={item.label}>
+                            {item.label.length > 4 ? item.label.substring(0, 4) + '...' : item.label}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 图例和说明 */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="text-center">
+                  <p className="text-xs text-gray-600 mb-2">
+                    {statisticsForm.filterType === 'department' ? '📍 部门' : '🗺️ 区域'}: {displayData.length} 个
+                  </p>
+                  <div className="flex justify-center items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 bg-gradient-to-t from-blue-500 to-blue-400 rounded"></div>
+                      <span className="text-gray-600">数据项1</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 bg-gradient-to-t from-green-500 to-green-400 rounded"></div>
+                      <span className="text-gray-600">数据项2</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -843,89 +988,130 @@ export default function ProjectDataDashboard(props) {
 
   // 渲染冲突预警页面
   const renderConflictPage = () => (
-    <div className="min-h-screen bg-white" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
-      {/* 头部 */}
-      <div className="bg-blue-500 text-white p-4 relative">
-        <button
-          onClick={() => showPage('main')}
-          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-lg hover:bg-blue-600 p-2 rounded"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="text-xl font-bold text-center">项目冲突预警</h1>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-blue-50" style={{ fontFamily: '"仿宋_GB2312", "FangSong_GB2312", serif' }}>
+      {/* 装饰背景 */}
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-br from-blue-500 to-green-600 opacity-10"></div>
 
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        {/* 标题 */}
-        <h2 className="text-2xl font-bold text-red-600 text-center mb-8">项目冲突情况</h2>
+      {/* 主内容区域 */}
+      <div className="relative z-10 pb-4 pt-2">
+        <div className="max-w-sm mx-auto px-2">
+          {/* 头部卡片 */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
+            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
 
-        {/* 加载状态 */}
-        {conflictLoading ? (
-          <div className="text-center py-12">
-            <div className="text-lg text-gray-600">正在查询冲突项目...</div>
+            {/* 头部内容 */}
+            <div className="p-4 relative">
+              <button
+                onClick={() => showPage('main')}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-600 p-2 rounded-full hover:bg-blue-50 transition-all duration-200"
+              >
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+
+              <div className="text-center">
+                <div className="w-12 h-12 bg-gradient-to-r from-red-500 to-orange-500 rounded-full mx-auto mb-2 flex items-center justify-center">
+                  <AlertTriangle className="h-6 w-6 text-white" />
+                </div>
+                <h1 className="text-lg font-bold text-gray-800">项目冲突预警</h1>
+                <p className="text-sm text-gray-600 mt-1">检测项目位置和合作单位冲突</p>
+              </div>
+            </div>
           </div>
-        ) : (
-          /* 冲突项目组 */
-          <div className="space-y-6">
-            {conflictProjects.length > 0 ? (
-              conflictProjects.map((group, groupIndex) => (
-                <div
-                  key={groupIndex}
-                  className="bg-yellow-200 border-2 border-yellow-300 rounded-2xl p-6 relative shadow-lg"
-                >
-                  {/* 警告图标 */}
-                  <div className="absolute top-3 right-3 text-2xl">⚠️</div>
 
-                  {/* 冲突信息标题 */}
-                  <div className="mb-4">
-                    <div className="text-lg font-bold text-red-700">
-                      冲突位置：{group.location || '未知位置'}
+          {/* 加载状态 */}
+          {conflictLoading ? (
+            <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-8">
+              <div className="text-center">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <div className="text-base font-medium text-gray-600">正在检测项目冲突...</div>
+                <div className="text-sm text-gray-500 mt-2">请稍候，正在分析项目数据</div>
+              </div>
+            </div>
+          ) : (
+            /* 冲突项目组 */
+            <div className="space-y-4">
+              {conflictProjects.length > 0 ? (
+                conflictProjects.map((group, groupIndex) => (
+                  <div
+                    key={groupIndex}
+                    className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 rounded-2xl p-4 relative shadow-xl backdrop-blur-sm"
+                  >
+                    {/* 警告图标 */}
+                    <div className="absolute top-3 right-3">
+                      <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                        <AlertTriangle className="h-4 w-4 text-white" />
+                      </div>
                     </div>
-                    <div className="text-md font-semibold text-red-600">
-                      项目类型：{group.projectType || '未知类型'}
-                    </div>
-                    <div className="text-sm text-gray-700 mt-2">
-                      共发现 {group.projects ? group.projects.length : 0} 个冲突项目
-                    </div>
-                  </div>
 
-                  {/* 项目列表 */}
-                  <div className="space-y-3">
-                    {group.projects && group.projects.map((project, projectIndex) => (
-                      <div
-                        key={projectIndex}
-                        className={`bg-white p-4 rounded-lg border-l-4 border-red-500 ${
-                          projectIndex < group.projects.length - 1 ? 'mb-3' : ''
-                        }`}
-                      >
-                        <div className="grid grid-cols-1 gap-2 text-sm">
-                          <div>
-                            <span className="font-semibold text-gray-700">项目编号：</span>
-                            <span className="text-gray-800">{project.project_id}</span>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-gray-700">项目合作单位：</span>
-                            <span className="text-gray-800">{project.partner_unit}</span>
-                          </div>
-                          <div>
-                            <span className="font-semibold text-gray-700">详细位置：</span>
-                            <span className="text-gray-800">
-                              {project.province}-{project.city}-{project.district}
-                            </span>
+                    {/* 冲突信息标题 */}
+                    <div className="mb-4 pr-12">
+                      <div className="flex items-center gap-2 mb-2">
+                        <MapPin className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-bold text-red-700">
+                          {group.location || '未知位置'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Building className="h-4 w-4 text-red-600" />
+                        <span className="text-sm font-semibold text-red-600">
+                          {group.projectType || '未知类型'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-3 w-3 text-orange-600" />
+                        <span className="text-xs text-gray-700">
+                          发现 {group.projects ? group.projects.length : 0} 个冲突项目
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 项目列表 */}
+                    <div className="space-y-3">
+                      {group.projects && group.projects.map((project, projectIndex) => (
+                        <div
+                          key={projectIndex}
+                          className="bg-white/90 backdrop-blur-sm p-3 rounded-xl border-l-4 border-red-400 shadow-md"
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-3 w-3 text-blue-600" />
+                              <span className="text-xs font-semibold text-gray-700">项目编号</span>
+                              <span className="text-xs text-gray-800 font-mono bg-gray-100 px-2 py-1 rounded">
+                                {project.project_id}
+                              </span>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <Building className="h-3 w-3 text-green-600 mt-0.5" />
+                              <div className="flex-1">
+                                <span className="text-xs font-semibold text-gray-700 block">合作单位</span>
+                                <span className="text-xs text-gray-800">{project.partner_unit}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <MapPin className="h-3 w-3 text-orange-600" />
+                              <span className="text-xs font-semibold text-gray-700">位置</span>
+                              <span className="text-xs text-gray-800">
+                                {project.province}-{project.city}-{project.district}
+                              </span>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
+                ))
+              ) : (
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border-2 border-green-200 rounded-2xl p-8 text-center shadow-xl">
+                  <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <div className="text-2xl">✅</div>
+                  </div>
+                  <div className="text-lg font-bold text-green-700 mb-2">未发现冲突项目</div>
+                  <div className="text-sm text-gray-600">所有项目位置和合作单位都没有冲突</div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-12">
-                <div className="text-lg text-green-600 font-semibold">✅ 未发现冲突项目</div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
