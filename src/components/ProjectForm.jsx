@@ -45,16 +45,6 @@ export function ProjectForm({
 
   return (
     <div className="space-y-3">
-      {/* 页面标题 */}
-      <div className="text-center py-2">
-        <h1 className="text-xl font-bold text-gray-900 mb-1">
-          📝 项目信息填报
-        </h1>
-        <p className="text-gray-600 text-xs">
-          请准确填写项目相关信息，带 * 的为必填项
-        </p>
-      </div>
-
       {/* 表单卡片 */}
       <Card className="border-0 shadow-lg rounded-xl bg-white overflow-hidden">
         <div className="bg-gradient-to-r from-green-500 to-blue-500 h-1"></div>

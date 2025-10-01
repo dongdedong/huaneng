@@ -622,19 +622,6 @@ export default function ProjectDataDashboard(props) {
       {/* 主内容区域 */}
       <div className="relative z-10 pt-20 pb-4">
         <div className="max-w-sm mx-auto px-2">
-          {/* 页面标题卡片 */}
-          <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border-0 overflow-hidden mb-6">
-            <div className="bg-gradient-to-r from-blue-500 to-green-500 h-1"></div>
-
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <div className="text-2xl">🏢</div>
-              </div>
-              <h1 className="text-xl font-bold text-gray-800 mb-2">项目管理系统</h1>
-              <p className="text-sm text-gray-600">选择功能模块开始使用</p>
-            </div>
-          </div>
-
           {/* 功能模块网格 */}
           <div className="space-y-4">
             {/* 对接项目统计 */}
