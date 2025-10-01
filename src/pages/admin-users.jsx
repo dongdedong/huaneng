@@ -71,7 +71,7 @@ export default function AdminUsers(props) {
     try {
       setLoading(true);
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'users',
+        dataSourceName: 'users_tbl',
         methodName: 'wedaGetRecordsV2',
         params: {
           filter: {},
@@ -202,7 +202,7 @@ export default function AdminUsers(props) {
         }
 
         await $w.cloud.callDataSource({
-          dataSourceName: 'users',
+          dataSourceName: 'users_tbl',
           methodName: 'wedaUpdateV2',
           params: {
             filter: {
@@ -222,7 +222,7 @@ export default function AdminUsers(props) {
       } else {
         // 新增用户 - 检查用户名和手机号是否已存在
         const existingUserByUsername = await $w.cloud.callDataSource({
-          dataSourceName: 'users',
+          dataSourceName: 'users_tbl',
           methodName: 'wedaGetRecordsV2',
           params: {
             filter: {
@@ -244,7 +244,7 @@ export default function AdminUsers(props) {
         }
 
         const existingUserByPhone = await $w.cloud.callDataSource({
-          dataSourceName: 'users',
+          dataSourceName: 'users_tbl',
           methodName: 'wedaGetRecordsV2',
           params: {
             filter: {
@@ -267,7 +267,7 @@ export default function AdminUsers(props) {
 
         // 创建新用户
         await $w.cloud.callDataSource({
-          dataSourceName: 'users',
+          dataSourceName: 'users_tbl',
           methodName: 'wedaCreateV2',
           params: {
             data: {
@@ -315,7 +315,7 @@ export default function AdminUsers(props) {
       setSubmitting(true);
 
       await $w.cloud.callDataSource({
-        dataSourceName: 'users',
+        dataSourceName: 'users_tbl',
         methodName: 'wedaDeleteV2',
         params: {
           filter: {

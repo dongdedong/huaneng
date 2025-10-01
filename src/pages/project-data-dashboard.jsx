@@ -62,7 +62,7 @@ export default function ProjectDataDashboard(props) {
     try {
       // 查询所有项目数据
       const result = await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
+        dataSourceName: 'project_info',
         methodName: 'wedaGetRecordsV2',
         params: {
           pageSize: 1000
@@ -142,241 +142,296 @@ export default function ProjectDataDashboard(props) {
     }));
   };
 
-  // 查询项目统计数据
-  const queryProjectStatistics = async (startDate, endDate, filterType, dataType) => {
-    console.log('=== 开始查询统计数据 ===');
+  // 初始化CloudBase SDK以支持预编译SQL
+  const [cloudbaseApp, setCloudbaseApp] = useState(null);
+  const [initialized, setInitialized] = useState(false);
+
+  // 初始化CloudBase
+  const initializeCloudBase = async () => {
+    if (initialized && cloudbaseApp) return cloudbaseApp;
+
+    try {
+      // 优先使用微搭平台的$w.cloud
+      if ($w && $w.cloud) {
+        console.log('使用微搭平台云开发接口');
+        setCloudbaseApp($w.cloud);
+        setInitialized(true);
+        return $w.cloud;
+      }
+
+      // 尝试使用全局cloudbase对象
+      if (window.cloudbase) {
+        console.log('使用全局cloudbase实例');
+        const envId = "huanneng-0g1guqcgf3264f38";
+        const app = window.cloudbase.init({
+          env: envId,
+          debug: true
+        });
+
+        const auth = app.auth({ persistence: "local" });
+        await auth.signInAnonymously();
+
+        setCloudbaseApp(app);
+        setInitialized(true);
+        return app;
+      }
+
+      throw new Error('CloudBase SDK未找到');
+    } catch (error) {
+      console.error('CloudBase初始化失败:', error);
+      throw error;
+    }
+  };
+
+  // 预编译SQL查询统计数据
+  const queryProjectStatisticsWithSQL = async (startDate, endDate, filterType, dataType) => {
+    console.log('=== 开始预编译SQL查询统计数据 ===');
     console.log('查询参数:', { startDate, endDate, filterType, dataType });
 
     try {
+      // 确保CloudBase已初始化
+      const cloudbase = await initializeCloudBase();
+
+      let sqlTemplate = '';
+      let sqlParams = {};
+      let categories = [];
+
+      // 根据筛选类型和数据类型构造SQL
       if (filterType === 'department') {
-        // 按项目开发部分组查询
+        categories = departments;
         if (dataType === 'count') {
-          console.log('查询类型: 按部门统计项目数量');
-
-          // 查询每个项目开发部的项目数量
-          const result = await $w.cloud.callDataSource({
-            dataSourceName: 'project_report',
-            methodName: 'wedaGetRecordsV2',
-            params: {
-              filter: {
-                where: {
-                  contactDate: {
-                    $gte: startDate,
-                    $lte: endDate
-                  }
-                }
-              },
-              pageSize: 1000
-            }
-          });
-
-          console.log('数据库查询结果:', result);
-          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
-
-          if (result.records && result.records.length > 0) {
-            console.log('前3条记录样本:', result.records.slice(0, 3));
-
-            // 检查每条记录的字段
-            result.records.forEach((record, index) => {
-              if (index < 5) { // 只打印前5条记录的详细信息
-                console.log(`记录${index + 1}:`, {
-                  department: record.department,
-                  projectName: record.projectName,
-                  contactDate: record.contactDate,
-                  city: record.city,
-                  projectCapacity: record.projectCapacity
-                });
-              }
-            });
-          }
-
-          // 前端分组统计
-          const departmentCounts = {};
-          departments.forEach(dept => departmentCounts[dept] = 0);
-          console.log('初始化部门计数:', departmentCounts);
-
-          if (result.records) {
-            result.records.forEach(record => {
-              console.log('处理记录 - department:', record.department, '是否匹配:', departmentCounts.hasOwnProperty(record.department));
-              if (record.department && departmentCounts.hasOwnProperty(record.department)) {
-                departmentCounts[record.department]++;
-                console.log(`${record.department} 计数加1, 当前值:`, departmentCounts[record.department]);
-              } else {
-                console.log('未匹配的部门:', record.department);
-              }
-            });
-          }
-
-          console.log('最终部门统计结果:', departmentCounts);
-          const finalValues = departments.map(dept => departmentCounts[dept] || 0);
-          console.log('返回的数值数组:', finalValues);
-
-          return {
-            categories: departments,
-            values: finalValues
-          };
+          // 按部门统计项目数量
+          sqlTemplate = `
+            SELECT
+              project_department as groupField,
+              COUNT(*) as value
+            FROM \`{{tableName}}\`
+            WHERE project_date >= {{startDate}}
+              AND project_date <= {{endDate}}
+              AND project_department IS NOT NULL
+            GROUP BY project_department
+            ORDER BY project_department
+          `;
         } else {
-          console.log('查询类型: 按部门统计项目容量');
-
-          // 查询每个项目开发部的项目容量总和
-          const result = await $w.cloud.callDataSource({
-            dataSourceName: 'project_report',
-            methodName: 'wedaGetRecordsV2',
-            params: {
-              filter: {
-                where: {
-                  contactDate: {
-                    $gte: startDate,
-                    $lte: endDate
-                  }
-                }
-              },
-              pageSize: 1000
-            }
-          });
-
-          console.log('数据库查询结果:', result);
-          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
-
-          // 前端分组统计容量
-          const departmentCapacity = {};
-          departments.forEach(dept => departmentCapacity[dept] = 0);
-          console.log('初始化部门容量统计:', departmentCapacity);
-
-          if (result.records) {
-            result.records.forEach(record => {
-              console.log('处理记录 - department:', record.department, 'projectCapacity:', record.projectCapacity);
-              if (record.department && departmentCapacity.hasOwnProperty(record.department)) {
-                const capacity = parseFloat(record.projectCapacity) || 0;
-                departmentCapacity[record.department] += capacity;
-                console.log(`${record.department} 容量累加: +${capacity}, 当前总容量:`, departmentCapacity[record.department]);
-              } else {
-                console.log('未匹配的部门或无容量数据:', record.department);
-              }
-            });
-          }
-
-          console.log('最终部门容量统计结果:', departmentCapacity);
-          const finalValues = departments.map(dept => Math.round((departmentCapacity[dept] || 0) * 100) / 100);
-          console.log('返回的容量数组:', finalValues);
-
-          return {
-            categories: departments,
-            values: finalValues
-          };
+          // 按部门统计项目容量
+          sqlTemplate = `
+            SELECT
+              project_department as groupField,
+              COALESCE(SUM(CAST(project_capacity AS DECIMAL(10,2))), 0) as value
+            FROM \`{{tableName}}\`
+            WHERE project_date >= {{startDate}}
+              AND project_date <= {{endDate}}
+              AND project_department IS NOT NULL
+              AND project_capacity IS NOT NULL
+            GROUP BY project_department
+            ORDER BY project_department
+          `;
         }
       } else {
-        // 按项目区域(city)分组查询
+        categories = regions;
         if (dataType === 'count') {
-          console.log('查询类型: 按城市统计项目数量');
-
-          // 查询每个城市的项目数量
-          const result = await $w.cloud.callDataSource({
-            dataSourceName: 'project_report',
-            methodName: 'wedaGetRecordsV2',
-            params: {
-              filter: {
-                where: {
-                  contactDate: {
-                    $gte: startDate,
-                    $lte: endDate
-                  }
-                }
-              },
-              pageSize: 1000
-            }
-          });
-
-          console.log('数据库查询结果:', result);
-          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
-
-          if (result.records && result.records.length > 0) {
-            console.log('前3条记录样本:', result.records.slice(0, 3));
-          }
-
-          // 前端分组统计
-          const cityCounts = {};
-          regions.forEach(city => cityCounts[city] = 0);
-          console.log('初始化城市计数:', cityCounts);
-
-          if (result.records) {
-            result.records.forEach(record => {
-              console.log('处理记录 - city:', record.city, '是否匹配:', cityCounts.hasOwnProperty(record.city));
-              if (record.city && cityCounts.hasOwnProperty(record.city)) {
-                cityCounts[record.city]++;
-                console.log(`${record.city} 计数加1, 当前值:`, cityCounts[record.city]);
-              } else {
-                console.log('未匹配的城市:', record.city);
-              }
-            });
-          }
-
-          console.log('最终城市统计结果:', cityCounts);
-          const finalValues = regions.map(city => cityCounts[city] || 0);
-          console.log('返回的数值数组:', finalValues);
-
-          return {
-            categories: regions,
-            values: finalValues
-          };
+          // 按城市统计项目数量
+          sqlTemplate = `
+            SELECT
+              city as groupField,
+              COUNT(*) as value
+            FROM \`{{tableName}}\`
+            WHERE project_date >= {{startDate}}
+              AND project_date <= {{endDate}}
+              AND city IS NOT NULL
+            GROUP BY city
+            ORDER BY city
+          `;
         } else {
-          console.log('查询类型: 按城市统计项目容量');
-
-          // 查询每个城市的项目容量总和
-          const result = await $w.cloud.callDataSource({
-            dataSourceName: 'project_report',
-            methodName: 'wedaGetRecordsV2',
-            params: {
-              filter: {
-                where: {
-                  contactDate: {
-                    $gte: startDate,
-                    $lte: endDate
-                  }
-                }
-              },
-              pageSize: 1000
-            }
-          });
-
-          console.log('数据库查询结果:', result);
-          console.log('查询到的记录数量:', result.records ? result.records.length : 0);
-
-          // 前端分组统计容量
-          const cityCapacity = {};
-          regions.forEach(city => cityCapacity[city] = 0);
-          console.log('初始化城市容量统计:', cityCapacity);
-
-          if (result.records) {
-            result.records.forEach(record => {
-              console.log('处理记录 - city:', record.city, 'projectCapacity:', record.projectCapacity);
-              if (record.city && cityCapacity.hasOwnProperty(record.city)) {
-                const capacity = parseFloat(record.projectCapacity) || 0;
-                cityCapacity[record.city] += capacity;
-                console.log(`${record.city} 容量累加: +${capacity}, 当前总容量:`, cityCapacity[record.city]);
-              } else {
-                console.log('未匹配的城市或无容量数据:', record.city);
-              }
-            });
-          }
-
-          console.log('最终城市容量统计结果:', cityCapacity);
-          const finalValues = regions.map(city => Math.round((cityCapacity[city] || 0) * 100) / 100);
-          console.log('返回的容量数组:', finalValues);
-
-          return {
-            categories: regions,
-            values: finalValues
-          };
+          // 按城市统计项目容量
+          sqlTemplate = `
+            SELECT
+              city as groupField,
+              COALESCE(SUM(CAST(project_capacity AS DECIMAL(10,2))), 0) as value
+            FROM \`{{tableName}}\`
+            WHERE project_date >= {{startDate}}
+              AND project_date <= {{endDate}}
+              AND city IS NOT NULL
+              AND project_capacity IS NOT NULL
+            GROUP BY city
+            ORDER BY city
+          `;
         }
       }
+
+      sqlParams = {
+        tableName: 'project_info',
+        startDate: startDate,
+        endDate: endDate
+      };
+
+      console.log('SQL模板:', sqlTemplate);
+      console.log('SQL参数:', sqlParams);
+
+      let result;
+
+      // 检查是否为微搭平台环境
+      if (cloudbase.callDataSource) {
+        console.log('微搭平台环境：使用数据源API模拟SQL查询');
+
+        // 微搭平台下使用数据源API替代SQL（回退到原始方法）
+        return await queryProjectStatisticsFallback(startDate, endDate, filterType, dataType);
+      }
+      // 标准CloudBase环境 - 使用预编译SQL
+      else if (cloudbase.models && cloudbase.models.$runSQL) {
+        console.log('使用CloudBase标准$runSQL方法执行预编译SQL');
+        result = await cloudbase.models.$runSQL(sqlTemplate, sqlParams);
+        console.log('预编译SQL执行结果:', result);
+
+        // 处理SQL查询结果
+        const sqlData = result.data || [];
+        const resultMap = {};
+
+        // 将SQL查询结果转换为map
+        sqlData.forEach(row => {
+          if (row.groupField && row.value !== undefined) {
+            resultMap[row.groupField] = parseFloat(row.value) || 0;
+          }
+        });
+
+        // 按照预定义的categories顺序生成最终数据
+        const finalValues = categories.map(category => resultMap[category] || 0);
+
+        console.log('SQL查询结果处理:', { resultMap, finalValues });
+
+        return {
+          categories: categories,
+          values: finalValues
+        };
+      }
+      // 其他可能的SQL接口
+      else if (typeof cloudbase.runSQL === 'function') {
+        console.log('使用直接runSQL方法');
+        result = await cloudbase.runSQL(sqlTemplate, sqlParams);
+        console.log('直接runSQL结果:', result);
+
+        // 处理结果（格式可能与$runSQL不同）
+        const resultMap = {};
+        if (result && result.length) {
+          result.forEach(row => {
+            if (row.groupField && row.value !== undefined) {
+              resultMap[row.groupField] = parseFloat(row.value) || 0;
+            }
+          });
+        }
+
+        const finalValues = categories.map(category => resultMap[category] || 0);
+
+        return {
+          categories: categories,
+          values: finalValues
+        };
+      }
+      else {
+        console.warn('当前环境不支持预编译SQL功能，回退到数据源API方式');
+        return await queryProjectStatisticsFallback(startDate, endDate, filterType, dataType);
+      }
+
     } catch (error) {
-      console.error('=== 查询统计数据失败 ===');
+      console.error('=== 预编译SQL查询失败，回退到数据源API ===');
       console.error('错误详情:', error);
-      console.error('错误消息:', error.message);
-      console.error('错误堆栈:', error.stack);
+      return await queryProjectStatisticsFallback(startDate, endDate, filterType, dataType);
+    }
+  };
+
+  // 回退查询方法（使用数据源API）
+  const queryProjectStatisticsFallback = async (startDate, endDate, filterType, dataType) => {
+    console.log('=== 使用数据源API查询统计数据（回退方案） ===');
+
+    try {
+      // 查询所有符合时间范围的数据
+      const result = await $w.cloud.callDataSource({
+        dataSourceName: 'project_info',
+        methodName: 'wedaGetRecordsV2',
+        params: {
+          filter: {
+            where: {
+              project_date: {
+                $gte: startDate,
+                $lte: endDate
+              }
+            }
+          },
+          pageSize: 1000
+        }
+      });
+
+      console.log('数据源API查询结果:', result);
+      console.log('查询到的记录数量:', result.records ? result.records.length : 0);
+
+      if (filterType === 'department') {
+        // 按项目开发部分组
+        const departmentData = {};
+        departments.forEach(dept => departmentData[dept] = 0);
+
+        if (result.records) {
+          result.records.forEach(record => {
+            const dept = record.project_department;
+            if (dept && departmentData.hasOwnProperty(dept)) {
+              if (dataType === 'count') {
+                departmentData[dept]++;
+              } else {
+                const capacity = parseFloat(record.project_capacity) || 0;
+                departmentData[dept] += capacity;
+              }
+            }
+          });
+        }
+
+        const finalValues = departments.map(dept =>
+          dataType === 'capacity'
+            ? Math.round((departmentData[dept] || 0) * 100) / 100
+            : departmentData[dept] || 0
+        );
+
+        return {
+          categories: departments,
+          values: finalValues
+        };
+      } else {
+        // 按城市分组
+        const cityData = {};
+        regions.forEach(city => cityData[city] = 0);
+
+        if (result.records) {
+          result.records.forEach(record => {
+            const city = record.city;
+            if (city && cityData.hasOwnProperty(city)) {
+              if (dataType === 'count') {
+                cityData[city]++;
+              } else {
+                const capacity = parseFloat(record.project_capacity) || 0;
+                cityData[city] += capacity;
+              }
+            }
+          });
+        }
+
+        const finalValues = regions.map(city =>
+          dataType === 'capacity'
+            ? Math.round((cityData[city] || 0) * 100) / 100
+            : cityData[city] || 0
+        );
+
+        return {
+          categories: regions,
+          values: finalValues
+        };
+      }
+    } catch (error) {
+      console.error('数据源API查询也失败:', error);
       throw error;
     }
+  };
+
+  // 查询项目统计数据（主入口）
+  const queryProjectStatistics = async (startDate, endDate, filterType, dataType) => {
+    return await queryProjectStatisticsWithSQL(startDate, endDate, filterType, dataType);
   };
 
   // 提交统计查询
@@ -810,7 +865,7 @@ export default function ProjectDataDashboard(props) {
 
       // 保存到数据库
       await $w.cloud.callDataSource({
-        dataSourceName: 'project_report',
+        dataSourceName: 'project_info',
         methodName: 'wedaCreateV2',
         params: {
           data: {
