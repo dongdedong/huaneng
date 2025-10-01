@@ -81,6 +81,9 @@ export default function MySQLTest(props) {
       // 方法1：尝试使用微搭平台的$w.cloud
       if ($w && $w.cloud) {
         console.log('使用微搭平台的$w.cloud接口');
+        console.log('$w.cloud对象结构:', $w.cloud);
+        console.log('$w.cloud方法列表:', Object.keys($w.cloud));
+
         setCloudbaseApp($w.cloud);
         setConnected(true);
         setConnectionStatus('已连接到微搭云开发环境');
@@ -177,13 +180,44 @@ export default function MySQLTest(props) {
       const insertDataObj = JSON.parse(testData.insertData);
       console.log('准备创建的数据:', insertDataObj);
 
-      const { data } = await cloudbaseApp.models[testData.modelName].create({
-        data: insertDataObj,
-        envType: testData.envType
-      });
+      let result;
 
-      console.log('Models API创建结果:', data);
-      addTestResult('Models创建', true, `成功创建数据，ID: ${data.id}`, data);
+      // 检查是否为微搭平台环境
+      if (cloudbaseApp.callDataSource) {
+        console.log('使用微搭平台数据源API创建数据');
+        result = await cloudbaseApp.callDataSource({
+          dataSourceName: testData.modelName,
+          methodName: 'wedaCreateV2',
+          params: {
+            data: insertDataObj
+          }
+        });
+        console.log('微搭数据源创建结果:', result);
+        addTestResult('Models创建', true, `微搭数据源创建成功`, result);
+      }
+      // 检查是否有models属性
+      else if (cloudbaseApp.models && cloudbaseApp.models[testData.modelName]) {
+        console.log('使用CloudBase Models API创建数据');
+        const { data } = await cloudbaseApp.models[testData.modelName].create({
+          data: insertDataObj,
+          envType: testData.envType
+        });
+        console.log('Models API创建结果:', data);
+        addTestResult('Models创建', true, `成功创建数据，ID: ${data.id}`, data);
+      }
+      // 尝试直接调用create方法
+      else if (typeof cloudbaseApp.create === 'function') {
+        console.log('使用直接create方法');
+        result = await cloudbaseApp.create({
+          collection: testData.modelName,
+          data: insertDataObj
+        });
+        console.log('直接create结果:', result);
+        addTestResult('Models创建', true, `创建成功`, result);
+      }
+      else {
+        throw new Error('未找到可用的数据创建接口，请检查API结构');
+      }
 
       toast({
         title: "创建成功",
@@ -223,20 +257,55 @@ export default function MySQLTest(props) {
       const filterObj = JSON.parse(testData.filterCondition);
       console.log('查询条件:', filterObj);
 
-      const { data } = await cloudbaseApp.models[testData.modelName].list({
-        filter: filterObj,
-        pageSize: 10,
-        pageNumber: 1,
-        getCount: true,
-        envType: testData.envType
-      });
+      let result;
 
-      console.log('Models API查询结果:', data);
-      addTestResult('Models查询', true, `查询到${data.records.length}条记录，总数: ${data.total}`, data);
+      // 检查是否为微搭平台环境
+      if (cloudbaseApp.callDataSource) {
+        console.log('使用微搭平台数据源API查询数据');
+        result = await cloudbaseApp.callDataSource({
+          dataSourceName: testData.modelName,
+          methodName: 'wedaGetRecordsV2',
+          params: {
+            filter: filterObj,
+            pageSize: 10
+          }
+        });
+        console.log('微搭数据源查询结果:', result);
+        const recordCount = result.records ? result.records.length : 0;
+        addTestResult('Models查询', true, `微搭数据源查询到${recordCount}条记录`, result);
+      }
+      // 检查是否有models属性
+      else if (cloudbaseApp.models && cloudbaseApp.models[testData.modelName]) {
+        console.log('使用CloudBase Models API查询数据');
+        const { data } = await cloudbaseApp.models[testData.modelName].list({
+          filter: filterObj,
+          pageSize: 10,
+          pageNumber: 1,
+          getCount: true,
+          envType: testData.envType
+        });
+        console.log('Models API查询结果:', data);
+        addTestResult('Models查询', true, `查询到${data.records.length}条记录，总数: ${data.total}`, data);
+        result = data;
+      }
+      // 尝试直接调用查询方法
+      else if (typeof cloudbaseApp.query === 'function') {
+        console.log('使用直接query方法');
+        result = await cloudbaseApp.query({
+          collection: testData.modelName,
+          filter: filterObj,
+          limit: 10
+        });
+        console.log('直接query结果:', result);
+        addTestResult('Models查询', true, `查询成功`, result);
+      }
+      else {
+        throw new Error('未找到可用的数据查询接口，请检查API结构');
+      }
 
       toast({
         title: "查询成功",
-        description: `从${testData.modelName}查询到${data.records.length}条记录`,
+        description: `从${testData.modelName}查询数据成功`,
         duration: 2000
       });
 
@@ -273,17 +342,55 @@ export default function MySQLTest(props) {
       console.log('SQL模板:', testData.sqlTemplate);
       console.log('SQL参数:', sqlParamsObj);
 
-      const result = await cloudbaseApp.models.$runSQL(
-        testData.sqlTemplate,
-        sqlParamsObj
-      );
+      let result;
 
-      console.log('预编译SQL执行结果:', result);
-      addTestResult('预编译SQL', true, `查询到${result.data.total}条记录`, result);
+      // 检查是否为微搭平台环境（微搭平台可能不支持直接SQL）
+      if (cloudbaseApp.callDataSource) {
+        console.log('微搭平台环境：尝试使用数据源API模拟SQL查询');
+
+        // 微搭平台下使用数据源API替代SQL
+        result = await cloudbaseApp.callDataSource({
+          dataSourceName: sqlParamsObj.tableName || testData.modelName,
+          methodName: 'wedaGetRecordsV2',
+          params: {
+            filter: {
+              where: {
+                name: {
+                  $eq: sqlParamsObj.userName
+                }
+              }
+            },
+            pageSize: sqlParamsObj.limit || 10
+          }
+        });
+        console.log('微搭数据源模拟SQL结果:', result);
+        const recordCount = result.records ? result.records.length : 0;
+        addTestResult('预编译SQL', true, `微搭平台模拟SQL查询到${recordCount}条记录（注：微搭平台使用数据源API替代SQL）`, result);
+      }
+      // 标准CloudBase环境
+      else if (cloudbaseApp.models && cloudbaseApp.models.$runSQL) {
+        console.log('使用CloudBase标准$runSQL方法');
+        result = await cloudbaseApp.models.$runSQL(
+          testData.sqlTemplate,
+          sqlParamsObj
+        );
+        console.log('预编译SQL执行结果:', result);
+        addTestResult('预编译SQL', true, `查询到${result.data.total}条记录`, result);
+      }
+      // 尝试其他可能的SQL接口
+      else if (typeof cloudbaseApp.runSQL === 'function') {
+        console.log('使用直接runSQL方法');
+        result = await cloudbaseApp.runSQL(testData.sqlTemplate, sqlParamsObj);
+        console.log('直接runSQL结果:', result);
+        addTestResult('预编译SQL', true, `SQL执行成功`, result);
+      }
+      else {
+        throw new Error('当前环境不支持预编译SQL功能。微搭平台请使用数据源API，CloudBase环境请确保SDK版本支持models.$runSQL方法');
+      }
 
       toast({
         title: "SQL执行成功",
-        description: `预编译SQL查询到${result.data.total}条记录`,
+        description: "预编译SQL查询执行完成",
         duration: 2000
       });
 
@@ -318,14 +425,42 @@ export default function MySQLTest(props) {
     try {
       console.log('原始SQL:', testData.rawSql);
 
-      const result = await cloudbaseApp.models.$runSQLRaw(testData.rawSql);
+      let result;
 
-      console.log('原始SQL执行结果:', result);
-      addTestResult('原始SQL', true, `查询到${result.data.total}条记录`, result);
+      // 检查是否为微搭平台环境（微搭平台可能不支持直接SQL）
+      if (cloudbaseApp.callDataSource) {
+        console.log('微搭平台环境：不支持原始SQL，建议使用数据源API');
+
+        addTestResult('原始SQL', false, '微搭平台不支持原始SQL功能，请使用"Models API"标签页的数据源接口');
+
+        toast({
+          title: "不支持原始SQL",
+          description: "微搭平台请使用Models API数据源接口",
+          variant: "destructive"
+        });
+        return;
+      }
+      // 标准CloudBase环境
+      else if (cloudbaseApp.models && cloudbaseApp.models.$runSQLRaw) {
+        console.log('使用CloudBase标准$runSQLRaw方法');
+        result = await cloudbaseApp.models.$runSQLRaw(testData.rawSql);
+        console.log('原始SQL执行结果:', result);
+        addTestResult('原始SQL', true, `查询到${result.data.total}条记录`, result);
+      }
+      // 尝试其他可能的SQL接口
+      else if (typeof cloudbaseApp.runSQLRaw === 'function') {
+        console.log('使用直接runSQLRaw方法');
+        result = await cloudbaseApp.runSQLRaw(testData.rawSql);
+        console.log('直接runSQLRaw结果:', result);
+        addTestResult('原始SQL', true, `SQL执行成功`, result);
+      }
+      else {
+        throw new Error('当前环境不支持原始SQL功能。CloudBase环境请确保SDK版本支持models.$runSQLRaw方法');
+      }
 
       toast({
         title: "SQL执行成功",
-        description: `原始SQL查询到${result.data.total}条记录`,
+        description: "原始SQL查询执行完成",
         duration: 2000
       });
 
@@ -692,6 +827,17 @@ export default function MySQLTest(props) {
             <li>• 环境类型：pre（体验环境）用于测试，prod（正式环境）用于生产</li>
             <li>• 推荐优先使用Models API，复杂查询可使用预编译SQL模式</li>
           </ul>
+
+          <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h4 className="font-bold text-yellow-800 mb-2">微搭平台特别说明</h4>
+            <ul className="text-yellow-700 text-sm space-y-1">
+              <li>• 微搭平台使用数据源API (`callDataSource`) 而非标准CloudBase Models API</li>
+              <li>• SQL功能在微搭平台中有限制，预编译SQL会使用数据源API模拟</li>
+              <li>• 原始SQL在微搭平台中不支持，请使用Models API标签页</li>
+              <li>• 数据源名称对应微搭平台中配置的数据源，而非数据库表名</li>
+              <li>• 查看控制台日志可了解具体使用的API类型和参数结构</li>
+            </ul>
+          </div>
         </div>
       </div>
     </div>
