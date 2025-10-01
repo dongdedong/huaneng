@@ -123,6 +123,21 @@ const TopNavBar = props => {
               <FileText className="h-5 w-5" />
             </button>
 
+            {/* 用户管理 - 仅admin可见 */}
+            {currentUser?.role === 'admin' && (
+              <button
+                onClick={() => navigateToPage('admin-users')}
+                className={`p-2 rounded-lg transition-all duration-200 ${
+                  isActivePage('admin-users')
+                    ? 'bg-purple-100 text-purple-600 shadow-md scale-110'
+                    : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'
+                }`}
+                title="用户管理"
+              >
+                <Users className="h-5 w-5" />
+              </button>
+            )}
+
             {/* 分界线 */}
             <div className="w-px h-6 bg-gray-200 mx-1"></div>
 

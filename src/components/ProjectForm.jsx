@@ -225,8 +225,8 @@ export function ProjectForm({
             </div>
           </div>
 
-          {/* 对接项目编号 */}
-          <div className="space-y-6 pt-4 border-t border-gray-100">
+          {/* 对接项目编号 - 隐藏显示但保留功能 */}
+          <div className="hidden space-y-6 pt-4 border-t border-gray-100">
             <div className="text-center">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">🔢 对接项目编号</h3>
               <p className="text-sm text-gray-600">系统自动生成，无需手动填写</p>

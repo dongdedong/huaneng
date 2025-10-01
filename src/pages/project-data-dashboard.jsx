@@ -187,7 +187,7 @@ export default function ProjectDataDashboard(props) {
                 groupKey: groupKey,
                 projects: group,
                 location: group[0].project_location,
-                type: group[0].project_type
+                projectType: group[0].project_type
               });
             }
           }
@@ -694,7 +694,7 @@ export default function ProjectDataDashboard(props) {
 
       {/* 固定头部 */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100">
-        <div className="max-w-sm mx-auto px-2">
+        <div className="max-w-md mx-auto px-1">
           <div className="flex items-center justify-center h-16 relative">
             <button
               onClick={() => showPage('main')}
@@ -714,7 +714,7 @@ export default function ProjectDataDashboard(props) {
 
       {/* 主内容区域 */}
       <div className="relative z-10 pt-20 pb-4">
-        <div className="max-w-sm mx-auto px-2">
+        <div className="max-w-md mx-auto px-1">
 
           {/* 表单容器 */}
           <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border-0 p-6 space-y-5">
@@ -725,36 +725,39 @@ export default function ProjectDataDashboard(props) {
                 <p className="text-xs text-gray-600">选择项目对接的时间段</p>
               </div>
 
-              {/* 开始时间 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  开始时间
-                </label>
-                <input
-                  type="date"
-                  value={statisticsForm.startDate}
-                  onChange={(e) => handleStatisticsFormChange('startDate', e.target.value)}
-                  min="2000-01-01"
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full h-11 px-3 border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
-                />
-              </div>
+              {/* 时间输入框 - 同行显示 */}
+              <div className="grid grid-cols-2 gap-3">
+                {/* 开始时间 */}
+                <div>
+                  <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 mb-2">
+                    <Calendar className="h-3 w-3 text-blue-600" />
+                    开始时间
+                  </label>
+                  <input
+                    type="date"
+                    value={statisticsForm.startDate}
+                    onChange={(e) => handleStatisticsFormChange('startDate', e.target.value)}
+                    min="2000-01-01"
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full h-10 px-2 text-sm border-2 border-gray-200 bg-gray-50/50 rounded-lg focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
+                  />
+                </div>
 
-              {/* 结束时间 */}
-              <div>
-                <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                  <Calendar className="h-4 w-4 text-blue-600" />
-                  结束时间
-                </label>
-                <input
-                  type="date"
-                  value={statisticsForm.endDate}
-                  onChange={(e) => handleStatisticsFormChange('endDate', e.target.value)}
-                  min={statisticsForm.startDate}
-                  max={new Date().toISOString().split('T')[0]}
-                  className="w-full h-11 px-3 border-2 border-gray-200 bg-gray-50/50 rounded-xl focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
-                />
+                {/* 结束时间 */}
+                <div>
+                  <label className="flex items-center gap-1 text-xs font-semibold text-gray-700 mb-2">
+                    <Calendar className="h-3 w-3 text-blue-600" />
+                    结束时间
+                  </label>
+                  <input
+                    type="date"
+                    value={statisticsForm.endDate}
+                    onChange={(e) => handleStatisticsFormChange('endDate', e.target.value)}
+                    min={statisticsForm.startDate}
+                    max={new Date().toISOString().split('T')[0]}
+                    className="w-full h-10 px-2 text-sm border-2 border-gray-200 bg-gray-50/50 rounded-lg focus:border-blue-400 focus:bg-white transition-all duration-200 outline-none"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1111,13 +1114,6 @@ export default function ProjectDataDashboard(props) {
                                 <span className="text-xs font-semibold text-gray-700 block">合作单位</span>
                                 <span className="text-xs text-gray-800">{project.partner_unit}</span>
                               </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MapPin className="h-3 w-3 text-orange-600" />
-                              <span className="text-xs font-semibold text-gray-700">位置</span>
-                              <span className="text-xs text-gray-800">
-                                {project.province}-{project.city}-{project.district}
-                              </span>
                             </div>
                           </div>
                         </div>
