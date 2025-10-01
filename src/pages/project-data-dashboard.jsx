@@ -56,69 +56,153 @@ export default function ProjectDataDashboard(props) {
   const [conflictProjects, setConflictProjects] = useState([]);
   const [conflictLoading, setConflictLoading] = useState(false);
 
+  // 计算字符串相似度（基于编辑距离算法）
+  const calculateStringSimilarity = (str1, str2) => {
+    if (!str1 || !str2) return 0;
+
+    const s1 = str1.toLowerCase().trim();
+    const s2 = str2.toLowerCase().trim();
+
+    if (s1 === s2) return 1;
+
+    const len1 = s1.length;
+    const len2 = s2.length;
+
+    // 创建编辑距离矩阵
+    const matrix = Array(len1 + 1).fill().map(() => Array(len2 + 1).fill(0));
+
+    // 初始化矩阵
+    for (let i = 0; i <= len1; i++) matrix[i][0] = i;
+    for (let j = 0; j <= len2; j++) matrix[0][j] = j;
+
+    // 填充矩阵
+    for (let i = 1; i <= len1; i++) {
+      for (let j = 1; j <= len2; j++) {
+        if (s1[i - 1] === s2[j - 1]) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j] + 1,     // 删除
+            matrix[i][j - 1] + 1,     // 插入
+            matrix[i - 1][j - 1] + 1  // 替换
+          );
+        }
+      }
+    }
+
+    // 计算相似度百分比
+    const maxLen = Math.max(len1, len2);
+    const editDistance = matrix[len1][len2];
+    return maxLen === 0 ? 0 : (maxLen - editDistance) / maxLen;
+  };
+
+  // 检查合作单位相似度
+  const hasPartnerUnitSimilarity = (units, threshold = 0.6) => {
+    if (!units || units.length < 2) return false;
+
+    for (let i = 0; i < units.length; i++) {
+      for (let j = i + 1; j < units.length; j++) {
+        const similarity = calculateStringSimilarity(units[i], units[j]);
+        console.log(`合作单位相似度比较: "${units[i]}" vs "${units[j]}" = ${(similarity * 100).toFixed(1)}%`);
+        if (similarity >= threshold) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   // 查询项目冲突数据
   const queryConflictProjects = async () => {
     setConflictLoading(true);
     try {
+      console.log('=== 开始查询项目冲突数据 ===');
+
       // 查询所有项目数据
       const result = await $w.cloud.callDataSource({
         dataSourceName: 'project_info',
         methodName: 'wedaGetRecordsV2',
         params: {
+          filter: {
+            where: {
+              // 确保关键字段不为空
+              province: { $ne: null },
+              city: { $ne: null },
+              district: { $ne: null },
+              project_type: { $ne: null },
+              partner_unit: { $ne: null }
+            }
+          },
           pageSize: 1000
         }
       });
 
+      console.log('查询到的项目数据:', result);
+
       if (result.records && result.records.length > 0) {
-        // 按地区分组查找可能的冲突项目
-        const locationGroups = {};
+        console.log(`共查询到 ${result.records.length} 条项目记录`);
+
+        // 按照省市区和项目类型进行分组
+        const locationTypeGroups = {};
 
         result.records.forEach(record => {
-          if (record.city || record.projectLocation) {
-            const location = record.city || record.projectLocation;
-            if (!locationGroups[location]) {
-              locationGroups[location] = [];
-            }
-            locationGroups[location].push(record.projectName);
+          // 创建分组键：省-市-区-项目类型
+          const groupKey = `${record.province}-${record.city}-${record.district}-${record.project_type}`;
+
+          if (!locationTypeGroups[groupKey]) {
+            locationTypeGroups[groupKey] = [];
           }
+
+          locationTypeGroups[groupKey].push({
+            project_id: record.project_id || record._id,
+            project_location: `${record.province}-${record.city}-${record.district}`,
+            project_type: record.project_type,
+            partner_unit: record.partner_unit,
+            // 保存完整记录用于调试
+            _fullRecord: record
+          });
         });
 
-        // 筛选出有多个项目的地区（可能存在冲突）
+        console.log('按地区和类型分组结果:', locationTypeGroups);
+
+        // 查找有冲突的分组
         const conflicts = [];
-        Object.keys(locationGroups).forEach(location => {
-          if (locationGroups[location].length > 1) {
-            // 去重项目名称
-            const uniqueProjects = [...new Set(locationGroups[location])];
-            if (uniqueProjects.length > 1) {
-              conflicts.push(uniqueProjects);
+
+        Object.keys(locationTypeGroups).forEach(groupKey => {
+          const group = locationTypeGroups[groupKey];
+
+          // 只检查有2个或以上项目的分组
+          if (group.length >= 2) {
+            console.log(`检查分组 ${groupKey}:`, group);
+
+            // 提取所有合作单位
+            const partnerUnits = group.map(item => item.partner_unit).filter(unit => unit);
+
+            console.log(`分组 ${groupKey} 的合作单位:`, partnerUnits);
+
+            // 检查合作单位相似度
+            if (hasPartnerUnitSimilarity(partnerUnits, 0.6)) {
+              console.log(`发现冲突分组 ${groupKey}:`, group);
+              conflicts.push({
+                groupKey: groupKey,
+                projects: group,
+                location: group[0].project_location,
+                type: group[0].project_type
+              });
             }
           }
         });
 
-        // 如果没有找到冲突，使用默认示例数据
-        if (conflicts.length === 0) {
-          setConflictProjects([
-            ['安阳光伏项目', '安阳风电项目'],
-            ['洛阳产业园区项目', '洛阳分布式光伏项目', '洛阳储能项目'],
-            ['南阳农光互补项目', '南阳牧光互补项目']
-          ]);
-        } else {
-          setConflictProjects(conflicts);
-        }
+        console.log('最终发现的冲突项目:', conflicts);
+
+        setConflictProjects(conflicts);
       } else {
-        // 没有数据时使用默认示例
-        setConflictProjects([
-          ['暂无项目冲突数据', '请先添加项目信息']
-        ]);
+        console.log('没有查询到项目数据');
+        setConflictProjects([]);
       }
     } catch (error) {
       console.error('查询冲突项目失败:', error);
-      // 出错时使用默认示例数据
-      setConflictProjects([
-        ['安阳光伏项目', '安阳风电项目'],
-        ['洛阳产业园区项目', '洛阳分布式光伏项目', '洛阳储能项目'],
-        ['南阳农光互补项目', '南阳牧光互补项目']
-      ]);
+      setConflictProjects([]);
     } finally {
       setConflictLoading(false);
     }
@@ -792,16 +876,44 @@ export default function ProjectDataDashboard(props) {
                   {/* 警告图标 */}
                   <div className="absolute top-3 right-3 text-2xl">⚠️</div>
 
+                  {/* 冲突信息标题 */}
+                  <div className="mb-4">
+                    <div className="text-lg font-bold text-red-700">
+                      冲突位置：{group.location || '未知位置'}
+                    </div>
+                    <div className="text-md font-semibold text-red-600">
+                      项目类型：{group.projectType || '未知类型'}
+                    </div>
+                    <div className="text-sm text-gray-700 mt-2">
+                      共发现 {group.projects ? group.projects.length : 0} 个冲突项目
+                    </div>
+                  </div>
+
                   {/* 项目列表 */}
                   <div className="space-y-3">
-                    {group.map((project, projectIndex) => (
+                    {group.projects && group.projects.map((project, projectIndex) => (
                       <div
                         key={projectIndex}
-                        className={`text-lg font-medium text-gray-800 ${
-                          projectIndex < group.length - 1 ? 'border-b border-yellow-400 pb-3' : ''
+                        className={`bg-white p-4 rounded-lg border-l-4 border-red-500 ${
+                          projectIndex < group.projects.length - 1 ? 'mb-3' : ''
                         }`}
                       >
-                        {project}
+                        <div className="grid grid-cols-1 gap-2 text-sm">
+                          <div>
+                            <span className="font-semibold text-gray-700">项目编号：</span>
+                            <span className="text-gray-800">{project.project_id}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">项目合作单位：</span>
+                            <span className="text-gray-800">{project.partner_unit}</span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-700">详细位置：</span>
+                            <span className="text-gray-800">
+                              {project.province}-{project.city}-{project.district}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -809,7 +921,7 @@ export default function ProjectDataDashboard(props) {
               ))
             ) : (
               <div className="text-center py-12">
-                <div className="text-lg text-gray-600">暂无项目冲突数据</div>
+                <div className="text-lg text-green-600 font-semibold">✅ 未发现冲突项目</div>
               </div>
             )}
           </div>
